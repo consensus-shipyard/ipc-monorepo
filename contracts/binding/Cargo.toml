@@ -7,9 +7,9 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-ethers = { version = "2.0", features = ["abigen", "ws"] }
-fvm_shared = { version = "=3.2.0", default-features = false, features = ["crypto"] }
-anyhow = { version = "1.0" }
+ethers = { workspace = true, features = ["abigen", "ws"] }
+fvm_shared = { workspace = true, default-features = false, features = ["crypto"] }
+anyhow = { workspace = true }
 
 [build-dependencies]
-ethers = { version = "2.0", features = ["abigen", "ws"] }
+ethers = { workspace = true, features = ["abigen", "ws"] }
