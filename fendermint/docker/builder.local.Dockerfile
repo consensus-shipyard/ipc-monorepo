@@ -9,7 +9,20 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+# Copy the stripped source code.
+COPY --from=stripper /app /app
+
+# Build the dependencies.
+RUN --mount=type=cache,target=target \
+  --mount=type=cache,target=$RUSTUP_HOME,from=rust,source=$RUSTUP_HOME \
+  --mount=type=cache,target=$CARGO_HOME,from=rust,source=$CARGO_HOME \
+  cargo build --release -p fendermint_app
+
+# Now copy the full source.
 COPY . .
+
+# Need to invalidate build caches otherwise they won't be recompiled with the real code.
+RUN find . -type f \( -wholename "**/src/lib.rs" -o -wholename "**/src/main.rs" \) | xargs touch
 
 # Mounting speeds up local builds, but it doesn't get cached between builds on CI.
 # OTOH it seems like one platform build can be blocked trying to acquire a lock on the build directory,

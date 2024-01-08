@@ -74,14 +74,14 @@ docker-deps: $(BUILTIN_ACTORS_BUNDLE) $(IPC_ACTORS_GEN)
 # it can handle for anyone with `DOCKER_BUILDKIT=1`.
 docker-build: docker-deps $(FENDERMINT_CODE)
 	if [ "$(PROFILE)" = "ci" ]; then \
-		cat docker/builder.ci.Dockerfile docker/runner.Dockerfile > docker/Dockerfile ; \
+		cat docker/stripper.Dockerfile docker/builder.ci.Dockerfile docker/runner.Dockerfile > docker/Dockerfile ; \
 		docker buildx build \
 			$(BUILDX_STORE) \
 			$(BUILDX_FLAGS) \
 			-f docker/Dockerfile \
 			-t $(BUILDX_TAG) $(PWD)/..; \
 	else \
-		cat docker/builder.local.Dockerfile docker/runner.Dockerfile > docker/Dockerfile ; \
+		cat docker/stripper.Dockerfile docker/builder.local.Dockerfile docker/runner.Dockerfile > docker/Dockerfile ; \
 		DOCKER_BUILDKIT=1 \
 		docker build \
 			$(BUILDX_STORE) \

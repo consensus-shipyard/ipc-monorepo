@@ -5,26 +5,6 @@
 # https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/
 # https://github.com/cross-rs/cross/wiki/Recipes#openssl
 
-# The goal of this step is to copy the `Cargo.toml` and `Cargo.lock` files _without_ the source code,
-# so that we can run a step in `builder` that compiles the dependencies only. To do so we first
-# copy the whole codebase then get rid of everything except the dependencies and do a build.
-FROM --platform=$BUILDPLATFORM ubuntu:latest as stripper
-
-WORKDIR /app
-
-# Copy the Cargo artifacts and Rust sources everything; even though we only need Cargo.* artifacts and Rust sources.
-COPY Cargo.toml Cargo.lock ./
-COPY . .
-
-# Delete anything other than cargo files: Rust sources, config files, Markdown, etc.
-RUN find . -type f \! -name "Cargo.*" | xargs rm -rf
-
-# Construct dummy sources. Add a print to help debug the case if we failed to properly replace the file.
-RUN echo "fn main() { println!(\"I'm the dummy.\"); }" > fendermint/fendermint/app/src/main.rs && \
-  for crate in $(find . -name "Cargo.toml" | xargs dirname | grep -v infra | grep -v node_modules | grep /); do \
-  touch $crate/src/lib.rs; \
-  done
-
 # Using `ubuntu` here because when I try `rust:bookworm` like in `builder.local.Dockerfile` then
 # even though I add `aarch64` rustup target as a RUN step, it can't compile `core` later on
 # unless that step is repeated in the same command as the cargo build. That doesn't happen
