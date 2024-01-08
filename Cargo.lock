@@ -2919,8 +2919,8 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "ipc_ipld_resolver",
  "k256 0.11.6",
  "libipld",
@@ -2960,7 +2960,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "num-traits",
  "primitives",
  "tendermint-rpc",
@@ -2979,8 +2979,8 @@ dependencies = [
  "fendermint_vm_topdown",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "multiaddr 0.16.0",
  "serde",
  "serde_with",
@@ -3006,7 +3006,7 @@ dependencies = [
  "fvm_ipld_blockstore",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "rand 0.8.5",
  "tendermint-rpc",
@@ -3150,7 +3150,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "lazy_static",
  "num-bigint",
  "quickcheck 1.0.3",
@@ -3175,7 +3175,7 @@ dependencies = [
  "fvm_ipld_hamt",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "lazy_static",
  "merkle-tree-rs",
@@ -3210,7 +3210,7 @@ version = "0.1.0"
 dependencies = [
  "cid",
  "fvm_shared",
- "ipc-sdk",
+ "ipc-api",
  "num-traits",
  "serde",
  "serde_with",
@@ -3231,7 +3231,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "num-traits",
  "quickcheck 1.0.3",
  "quickcheck_macros",
@@ -3269,7 +3269,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "libipld",
  "num-traits",
@@ -3307,7 +3307,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "lazy_static",
  "num-traits",
  "quickcheck 1.0.3",
@@ -3326,7 +3326,7 @@ dependencies = [
  "async-stm",
  "cid",
  "im",
- "ipc-sdk",
+ "ipc-api",
  "ipc_ipld_resolver",
  "tokio",
  "tracing",
@@ -3379,8 +3379,8 @@ dependencies = [
  "ethers",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "ipc_actors_abis",
  "num-traits",
  "serde",
@@ -4776,6 +4776,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59ce5ef949d49ee85593fc4d3f3f95ad61657076395cbbce23e2121fc5542074"
 
 [[package]]
+name = "ipc-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cid",
+ "ethers",
+ "fil_actors_runtime 11.0.0",
+ "fnv",
+ "fvm_ipld_blockstore",
+ "fvm_ipld_encoding 0.3.3",
+ "fvm_ipld_hamt",
+ "fvm_shared",
+ "integer-encoding",
+ "ipc_actors_abis",
+ "lazy_static",
+ "log",
+ "num-traits",
+ "primitives",
+ "serde",
+ "serde_json",
+ "serde_tuple",
+ "thiserror",
+]
+
+[[package]]
 name = "ipc-cli"
 version = "0.1.0"
 dependencies = [
@@ -4795,9 +4820,9 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-identity",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
+ "ipc-wallet",
  "libsecp256k1",
  "log",
  "num-derive",
@@ -4818,7 +4843,48 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipc-identity"
+name = "ipc-provider"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "async-trait",
+ "base64 0.21.5",
+ "bytes",
+ "cid",
+ "dirs",
+ "ethers",
+ "ethers-contract",
+ "fil_actors_runtime 11.0.0",
+ "futures-util",
+ "fvm_ipld_encoding 0.3.3",
+ "fvm_shared",
+ "hex",
+ "indoc",
+ "ipc-api",
+ "ipc-wallet",
+ "ipc_actors_abis",
+ "log",
+ "num-derive",
+ "num-traits",
+ "primitives",
+ "reqwest",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_tuple",
+ "strum 0.24.1",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite 0.18.0",
+ "toml 0.7.8",
+ "url",
+ "zeroize",
+]
+
+[[package]]
+name = "ipc-wallet"
 version = "0.1.0"
 dependencies = [
  "ahash 0.8.6",
@@ -4848,72 +4914,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipc-provider"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-trait",
- "base64 0.21.5",
- "bytes",
- "cid",
- "dirs",
- "ethers",
- "ethers-contract",
- "fil_actors_runtime 11.0.0",
- "futures-util",
- "fvm_ipld_encoding 0.3.3",
- "fvm_shared",
- "hex",
- "indoc",
- "ipc-identity",
- "ipc-sdk",
- "ipc_actors_abis",
- "log",
- "num-derive",
- "num-traits",
- "primitives",
- "reqwest",
- "serde",
- "serde_bytes",
- "serde_json",
- "serde_tuple",
- "strum 0.24.1",
- "tempfile",
- "thiserror",
- "tokio",
- "tokio-tungstenite 0.18.0",
- "toml 0.7.8",
- "url",
- "zeroize",
-]
-
-[[package]]
-name = "ipc-sdk"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cid",
- "ethers",
- "fil_actors_runtime 11.0.0",
- "fnv",
- "fvm_ipld_blockstore",
- "fvm_ipld_encoding 0.3.3",
- "fvm_ipld_hamt",
- "fvm_shared",
- "integer-encoding",
- "ipc_actors_abis",
- "lazy_static",
- "log",
- "num-traits",
- "primitives",
- "serde",
- "serde_json",
- "serde_tuple",
- "thiserror",
-]
-
-[[package]]
 name = "ipc_actors_abis"
 version = "0.1.0"
 dependencies = [
@@ -4936,7 +4936,7 @@ dependencies = [
  "fvm_ipld_hamt",
  "fvm_shared",
  "gcra",
- "ipc-sdk",
+ "ipc-api",
  "ipc_ipld_resolver",
  "lazy_static",
  "libipld",

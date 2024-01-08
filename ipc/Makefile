@@ -1,6 +1,6 @@
 .PHONY: all build test lint license check-fmt check-clippy diagrams install-infra clean-infra
 
-CRATE   := ipc-cli ipc-identity ipc-provider ipc-sdk
+CRATE   := ipc-wallet ipc-provider ipc-api
 PACKAGE := $(patsubst %, --package %, $(CRATE))
 
 all: test build
