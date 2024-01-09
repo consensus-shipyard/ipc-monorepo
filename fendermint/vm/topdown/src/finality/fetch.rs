@@ -247,10 +247,10 @@ mod tests {
     use async_trait::async_trait;
     use fvm_shared::address::Address;
     use fvm_shared::econ::TokenAmount;
-    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use ipc_api::cross::{CrossMsg, StorableMsg};
     use ipc_api::staking::{StakingChange, StakingChangeRequest, StakingOperation};
     use ipc_api::subnet_id::SubnetID;
+    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
     use std::time::Duration;

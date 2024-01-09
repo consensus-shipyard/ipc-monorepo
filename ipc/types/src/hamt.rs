@@ -4,9 +4,9 @@ use crate::actor_error;
 use std::any::type_name;
 use std::marker::PhantomData;
 
+use super::{make_empty_map, make_map_with_root_and_bitwidth};
 use crate::tcid_ops;
 use anyhow::{anyhow, Result};
-use super::{make_empty_map, make_map_with_root_and_bitwidth};
 use fvm_ipld_blockstore::{Blockstore, MemoryBlockstore};
 use fvm_ipld_hamt::Error as HamtError;
 use fvm_ipld_hamt::Hamt;

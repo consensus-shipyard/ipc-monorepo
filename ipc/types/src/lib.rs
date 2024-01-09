@@ -6,19 +6,19 @@ use cid::{multihash::Code, Cid};
 
 pub use self::actor_error::*;
 
+pub mod actor_error;
 mod amt;
 mod ethaddr;
 mod hamt;
 mod link;
 mod taddress;
 mod uints;
-pub mod actor_error;
 
 pub use amt::TAmt;
 pub use ethaddr::*;
 use fvm_ipld_amt::Amt;
 use fvm_ipld_blockstore::Blockstore;
-use fvm_ipld_hamt::{Hamt, BytesKey, Error as HamtError};
+use fvm_ipld_hamt::{BytesKey, Error as HamtError, Hamt};
 pub use hamt::THamt;
 pub use link::TLink;
 use serde::{de::DeserializeOwned, Serialize};

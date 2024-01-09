@@ -4,8 +4,8 @@
 use std::{future::Future, time::Duration};
 
 use async_stm::{atomically, queues::TQueueLike};
-use ipc_ipld_resolver::Client as ResolverClient;
 use ipc_api::subnet_id::SubnetID;
+use ipc_ipld_resolver::Client as ResolverClient;
 
 use crate::pool::{ResolveQueue, ResolveTask};
 

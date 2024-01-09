@@ -303,9 +303,9 @@ mod tests {
     use anyhow::anyhow;
     use async_stm::atomically;
     use async_trait::async_trait;
-    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use ipc_api::cross::CrossMsg;
     use ipc_api::staking::StakingChangeRequest;
+    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use std::sync::Arc;
 
     struct TestParentFinalityStateQuery {

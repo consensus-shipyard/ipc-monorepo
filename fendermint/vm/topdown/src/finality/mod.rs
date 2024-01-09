@@ -47,9 +47,9 @@ mod tests {
     };
     use async_stm::atomically_or_err;
     use async_trait::async_trait;
-    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use ipc_api::cross::CrossMsg;
     use ipc_api::staking::StakingChangeRequest;
+    use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
     use std::sync::Arc;
     use tokio::time::Duration;
 
