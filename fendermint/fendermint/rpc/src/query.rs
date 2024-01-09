@@ -16,7 +16,7 @@ use fvm_shared::ActorID;
 use fvm_shared::{address::Address, error::ExitCode};
 
 use fendermint_vm_message::query::{
-    ActorState, FvmQuery, FvmQueryHeight, GasEstimate, StateParams,
+    ActorState, BuiltinActors, FvmQuery, FvmQueryHeight, GasEstimate, StateParams,
 };
 
 use crate::response::encode_data;
@@ -94,6 +94,23 @@ pub trait QueryClient: Sync {
             fvm_ipld_encoding::from_slice(&res.value)
                 .context("failed to decode StateParams from query")
         })?;
+        Ok(QueryResponse { height, value })
+    }
+
+    /// Queries the built-in actors known by the System actor.
+    async fn builtin_actors(
+        &self,
+        height: FvmQueryHeight,
+    ) -> anyhow::Result<QueryResponse<BuiltinActors>> {
+        let res = self.perform(FvmQuery::BuiltinActors, height).await?;
+        let height = res.height;
+        let value = {
+            let registry: Vec<(String, Cid)> = extract(res, |res| {
+                fvm_ipld_encoding::from_slice(&res.value)
+                    .context("failed to decode BuiltinActors from query")
+            })?;
+            BuiltinActors { registry }
+        };
         Ok(QueryResponse { height, value })
     }
 

@@ -74,6 +74,8 @@ pub enum FvmQuery {
     EstimateGas(Box<FvmMessage>),
     /// Retrieve the slowly changing state parameters that aren't part of the state tree.
     StateParams,
+    /// Query the built-in actors known by the System actor.
+    BuiltinActors,
 }
 
 /// State of all actor implementations.
@@ -140,6 +142,12 @@ pub struct StateParams {
     pub chain_id: u64,
     /// Current network version.
     pub network_version: NetworkVersion,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
+pub struct BuiltinActors {
+    /// Registry of built-in actors known by the system.
+    pub registry: Vec<(String, Cid)>,
 }
 
 #[cfg(feature = "arb")]

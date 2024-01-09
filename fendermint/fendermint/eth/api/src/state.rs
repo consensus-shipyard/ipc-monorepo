@@ -8,11 +8,12 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use anyhow::{anyhow, Context};
+use cid::Cid;
 use ethers_core::types::{self as et};
 use fendermint_rpc::client::{FendermintClient, TendermintClient};
 use fendermint_rpc::query::QueryClient;
 use fendermint_vm_actor_interface::{evm, system};
-use fendermint_vm_message::query::FvmQueryHeight;
+use fendermint_vm_message::query::{ActorState, FvmQueryHeight};
 use fendermint_vm_message::signed::DomainHash;
 use fendermint_vm_message::{chain::ChainMessage, conv::from_eth::to_fvm_address};
 use fvm_ipld_encoding::{de::DeserializeOwned, RawBytes};
@@ -35,6 +36,7 @@ use crate::filters::{
     FilterRecords,
 };
 use crate::handlers::ws::MethodNotification;
+use crate::state::ActorType::Unknown;
 use crate::GasOpt;
 use crate::{
     conv::from_tm::{map_rpc_block_txs, to_chain_message, to_eth_block, to_eth_transaction},
@@ -110,6 +112,17 @@ impl<C> JsonRpcState<C> {
             .cloned()
             .ok_or_else(|| anyhow!("web socket not found"))
     }
+}
+
+/// Represents the actor type of a concrete actor.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum ActorType {
+    /// The queried actor does not exist in the state tree.
+    Inexistent,
+    /// The queried actor exists, and its type is identified by the supplied manifest key.
+    Known(String),
+    /// The queried actor exists, but it's not a built-in actor and therefore it cannot be identified.
+    Unknown(Cid),
 }
 
 impl<C> JsonRpcState<C>
@@ -394,6 +407,30 @@ where
 
             Ok(Some(data))
         }
+    }
+
+    pub async fn get_actor_type(
+        &self,
+        address: &et::H160,
+        height: FvmQueryHeight,
+    ) -> JsonRpcResult<ActorType> {
+        let addr = to_fvm_address(address.clone());
+        let Some((
+            _,
+            ActorState {
+                code: actor_type_cid,
+                ..
+            },
+        )) = self.client.actor_state(&addr, height).await?.value
+        else {
+            return Ok(ActorType::Inexistent);
+        };
+        let registry = self.client.builtin_actors(height).await?.value.registry;
+        let ret = match registry.iter().find(|(typ, cid)| cid == &actor_type_cid) {
+            Some((typ, _)) => ActorType::Known(typ.clone()),
+            None => ActorType::Unknown(actor_type_cid),
+        };
+        Ok(ret)
     }
 }
 

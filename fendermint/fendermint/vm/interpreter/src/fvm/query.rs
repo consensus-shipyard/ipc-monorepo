@@ -1,6 +1,7 @@
 // Copyright 2022-2023 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
 use async_trait::async_trait;
+use cid::Cid;
 use fendermint_vm_message::query::{ActorState, FvmQuery, GasEstimate, StateParams};
 use fvm_ipld_blockstore::Blockstore;
 use fvm_ipld_encoding::RawBytes;
@@ -18,7 +19,7 @@ use super::{state::FvmQueryState, FvmApplyRet, FvmMessageInterpreter};
 /// sent in the response. The client has to know what to expect,
 /// depending on the kind of query it sent.
 pub enum FvmQueryRet {
-    /// Bytes from the IPLD store retult, if found.
+    /// Bytes from the IPLD store result, if found.
     Ipld(Option<Vec<u8>>),
     /// The full state of an actor, if found.
     ActorState(Option<Box<(ActorID, ActorState)>>),
@@ -28,6 +29,8 @@ pub enum FvmQueryRet {
     EstimateGas(GasEstimate),
     /// Current state parameters.
     StateParams(StateParams),
+    /// Builtin actors known by the system.
+    BuiltinActors(Vec<(String, Cid)>),
 }
 
 #[async_trait]
@@ -147,6 +150,10 @@ where
                     network_version: state_params.network_version,
                 };
                 Ok((state, FvmQueryRet::StateParams(state_params)))
+            }
+            FvmQuery::BuiltinActors => {
+                let (state, ret) = state.builtin_actors().await?;
+                Ok((state, FvmQueryRet::BuiltinActors(ret)))
             }
         }
     }

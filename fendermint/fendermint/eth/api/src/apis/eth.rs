@@ -18,13 +18,13 @@ use fendermint_rpc::response::{decode_fevm_invoke, decode_fevm_return_data};
 use fendermint_vm_actor_interface::eam::{EthAddress, EAM_ACTOR_ADDR};
 use fendermint_vm_actor_interface::evm;
 use fendermint_vm_message::chain::ChainMessage;
-use fendermint_vm_message::query::FvmQueryHeight;
+use fendermint_vm_message::query::{ActorState, FvmQuery, FvmQueryHeight};
 use fendermint_vm_message::signed::SignedMessage;
 use fvm_ipld_encoding::RawBytes;
 use fvm_shared::address::Address;
 use fvm_shared::bigint::BigInt;
 use fvm_shared::crypto::signature::Signature;
-use fvm_shared::{chainid::ChainID, error::ExitCode};
+use fvm_shared::{chainid::ChainID, error::ExitCode, ActorID};
 use jsonrpc_v2::Params;
 use rand::Rng;
 use tendermint_rpc::endpoint::{self, status};
@@ -722,6 +722,15 @@ pub async fn get_storage_at<C>(
 where
     C: Client + Sync + Send,
 {
+    let mut bz = [0u8; 32];
+    let height = data.query_height(block_id).await?;
+
+    // If not an EVM actor, return empty.
+    if data.get_actor_type(&address, height).await? != ActorType::Known("evm".to_string()) {
+        // The client library expects hex encoded string.
+        return Ok(hex::encode(bz));
+    }
+
     let params = evm::GetStorageAtParams {
         storage_key: {
             let mut bz = [0u8; 32];
@@ -730,8 +739,6 @@ where
         },
     };
     let params = RawBytes::serialize(params).context("failed to serialize position to IPLD")?;
-    let height = data.query_height(block_id).await?;
-
     let ret = data
         .read_evm_actor::<evm::GetStorageAtReturn>(
             address,
@@ -741,11 +748,11 @@ where
         )
         .await?;
 
-    // The client library expects hex encoded string.
-    let mut bz = [0u8; 32];
     if let Some(ret) = ret {
         ret.storage.to_big_endian(&mut bz);
     }
+
+    // The client library expects hex encoded string.
     Ok(hex::encode(bz))
 }
 
@@ -757,9 +764,15 @@ pub async fn get_code<C>(
 where
     C: Client + Sync + Send,
 {
+    let height = data.query_height(block_id).await?;
+
+    // Return empty if not an EVM actor.
+    if data.get_actor_type(&address, height).await? != ActorType::Known("evm".to_string()) {
+        return Ok(Default::default());
+    }
+
     // This method has no input parameters.
     let params = RawBytes::default();
-    let height = data.query_height(block_id).await?;
 
     let ret = data
         .read_evm_actor::<evm::BytecodeReturn>(address, evm::Method::GetBytecode, params, height)
@@ -1058,6 +1071,7 @@ pub async fn unsubscribe<C>(
     uninstall_filter(data, Params((filter_id,))).await
 }
 
+use crate::state::ActorType;
 use params::{EstimateGasParams, SubscribeParams, TypedTransactionCompat};
 
 mod params {

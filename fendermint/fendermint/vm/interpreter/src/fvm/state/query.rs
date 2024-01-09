@@ -7,13 +7,14 @@ use std::{cell::RefCell, sync::Arc};
 use anyhow::{anyhow, Context};
 
 use cid::Cid;
-use fendermint_vm_actor_interface::system::is_system_addr;
+use fendermint_vm_actor_interface::system::{is_system_addr, State, SYSTEM_ACTOR_ADDR};
 use fendermint_vm_core::chainid::HasChainID;
 use fendermint_vm_message::query::ActorState;
 use fvm::engine::MultiEngine;
 use fvm::executor::ApplyRet;
 use fvm::state_tree::StateTree;
 use fvm_ipld_blockstore::Blockstore;
+use fvm_ipld_encoding::CborStore;
 use fvm_shared::{address::Address, chainid::ChainID, clock::ChainEpoch, ActorID};
 use num_traits::Zero;
 
@@ -202,6 +203,25 @@ where
 
     pub fn state_params(&self) -> &FvmStateParams {
         &self.state_params
+    }
+
+    /// Returns the registry of built-in actors as enrolled in the System actor.
+    pub async fn builtin_actors(self) -> anyhow::Result<(Self, Vec<(String, Cid)>)> {
+        let (s, sys_state) = {
+            let (s, state) = self.actor_state(&SYSTEM_ACTOR_ADDR).await?;
+            (s, state.ok_or(anyhow!("no system actor"))?.1)
+        };
+        let state: State = s
+            .store
+            .get_cbor(&sys_state.code)
+            .context("failed to get system state")?
+            .ok_or(anyhow!("system actor state not found"))?;
+        let ret = s
+            .store
+            .get_cbor(&state.builtin_actors)
+            .context("failed to get builtin actors manifest")?
+            .ok_or(anyhow!("builtin actors manifest not found"))?;
+        Ok((s, ret))
     }
 
     pub fn block_height(&self) -> ChainEpoch {
