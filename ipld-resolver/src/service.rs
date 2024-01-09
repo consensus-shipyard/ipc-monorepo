@@ -13,12 +13,11 @@ use libp2p::swarm::SwarmEvent;
 use libp2p::{
     core::{muxing::StreamMuxerBox, transport::Boxed},
     identity::Keypair,
-    mplex, noise,
-    swarm::{ConnectionLimits, SwarmBuilder},
-    yamux, Multiaddr, PeerId, Swarm, Transport,
+    noise, yamux, Multiaddr, PeerId, Swarm, Transport,
 };
 use libp2p::{identify, ping};
 use libp2p_bitswap::{BitswapResponse, BitswapStore};
+use libp2p_mplex::MplexConfig;
 use log::{debug, error, info, trace, warn};
 use prometheus::Registry;
 use rand::seq::SliceRandom;
@@ -159,18 +158,25 @@ impl<P: StoreParams> Service<P> {
 
         // NOTE: Hardcoded values from Forest. Will leave them as is until we know we need to change.
 
-        let limits = ConnectionLimits::default()
-            .with_max_pending_incoming(Some(10))
-            .with_max_pending_outgoing(Some(30))
-            .with_max_established_incoming(Some(config.connection.max_incoming))
-            .with_max_established_outgoing(None) // Allow bitswap to connect to subnets we did not anticipate when we started.
-            .with_max_established_per_peer(Some(5));
+        // TODO: Where this these go? Used to be `SwarmBuilder::connection_limits`
+        // let _limits = ConnectionLimits::default()
+        //     .with_max_pending_incoming(Some(10))
+        //     .with_max_pending_outgoing(Some(30))
+        //     .with_max_established_incoming(Some(config.connection.max_incoming))
+        //     .with_max_established_outgoing(None) // Allow bitswap to connect to subnets we did not anticipate when we started.
+        //     .with_max_established_per_peer(Some(5));
 
-        let swarm = SwarmBuilder::with_tokio_executor(transport, behaviour, peer_id)
-            .connection_limits(limits)
-            .notify_handler_buffer_size(std::num::NonZeroUsize::new(20).expect("Not zero"))
-            .connection_event_buffer_size(64)
-            .build();
+        //.connection_limits(limits)
+        //.notify_handler_buffer_size(std::num::NonZeroUsize::new(20).expect("Not zero"))
+        //.connection_event_buffer_size(64)
+        //.build();
+
+        let swarm = Swarm::new(
+            transport,
+            behaviour,
+            peer_id,
+            libp2p::swarm::Config::with_tokio_executor(),
+        );
 
         let (request_tx, request_rx) = mpsc::unbounded_channel();
         let (event_tx, _) = broadcast::channel(config.connection.event_buffer_capacity as usize);
@@ -286,7 +292,7 @@ impl<P: StoreParams> Service<P> {
     fn handle_ping_event(&mut self, event: ping::Event) {
         let peer_id = event.peer.to_base58();
         match event.result {
-            Ok(ping::Success::Ping { rtt }) => {
+            Ok(rtt) => {
                 stats::PING_SUCCESS.inc();
                 stats::PING_RTT.observe(rtt.as_millis() as f64);
                 trace!(
@@ -295,9 +301,6 @@ impl<P: StoreParams> Service<P> {
                     self.peer_id,
                     rtt.as_millis()
                 );
-            }
-            Ok(ping::Success::Pong) => {
-                trace!("PingSuccess::Pong from {peer_id} to {}", self.peer_id);
             }
             Err(ping::Failure::Timeout) => {
                 stats::PING_TIMEOUT.inc();
@@ -311,8 +314,10 @@ impl<P: StoreParams> Service<P> {
                 );
             }
             Err(ping::Failure::Unsupported) => {
-                warn!("Banning peer {peer_id} due to protocol error");
-                self.swarm.ban_peer_id(event.peer);
+                warn!("Should ban peer {peer_id} due to protocol error");
+                // TODO: How do we ban peers in 0.53 ?
+                // see https://github.com/libp2p/rust-libp2p/pull/3590/files
+                // self.swarm.ban_peer_id(event.peer);
             }
         }
     }
@@ -556,22 +561,15 @@ fn send_resolve_result(tx: Sender<ResolveResult>, res: ResolveResult) {
 pub fn build_transport(local_key: Keypair) -> Boxed<(PeerId, StreamMuxerBox)> {
     let tcp_transport =
         || libp2p::tcp::tokio::Transport::new(libp2p::tcp::Config::new().nodelay(true));
-    let transport = libp2p::dns::TokioDnsConfig::system(tcp_transport()).unwrap();
-    let auth_config = {
-        let dh_keys = noise::Keypair::<noise::X25519Spec>::new()
-            .into_authentic(&local_key)
-            .expect("Noise key generation failed");
-
-        noise::NoiseConfig::xx(dh_keys).into_authenticated()
-    };
+    let transport = libp2p::dns::tokio::Transport::system(tcp_transport()).unwrap();
+    let auth_config = noise::Config::new(&local_key).expect("Noise key generation failed");
 
     let mplex_config = {
-        let mut mplex_config = mplex::MplexConfig::new();
+        let mut mplex_config = MplexConfig::new();
         mplex_config.set_max_buffer_size(usize::MAX);
 
-        let mut yamux_config = yamux::YamuxConfig::default();
-        yamux_config.set_max_buffer_size(16 * 1024 * 1024);
-        yamux_config.set_receive_window_size(16 * 1024 * 1024);
+        // FIXME: Yamux will end up beaing deprecated.
+        let yamux_config = yamux::Config::default();
         // yamux_config.set_window_update_mode(WindowUpdateMode::OnRead);
         libp2p::core::upgrade::SelectUpgrade::new(yamux_config, mplex_config)
     };

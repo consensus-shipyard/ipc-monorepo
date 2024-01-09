@@ -16,6 +16,8 @@ lazy_static = { workspace = true }
 libipld = { workspace = true }
 libp2p = { workspace = true }
 libp2p-bitswap = { workspace = true }
+libp2p-mplex = { workspace = true }
+lru_time_cache = { workspace = true }
 log = { workspace = true }
 prometheus = { workspace = true }
 quickcheck = { workspace = true, optional = true }

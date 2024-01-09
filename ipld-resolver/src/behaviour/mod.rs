@@ -49,7 +49,10 @@ pub enum ConfigError {
 /// * Gossipsub to advertise subnet membership
 /// * Bitswap to resolve CIDs
 #[derive(NetworkBehaviour)]
-pub struct Behaviour<P: StoreParams> {
+pub struct Behaviour<P>
+where
+    P: StoreParams,
+{
     ping: ping::Behaviour,
     identify: identify::Behaviour,
     discovery: discovery::Behaviour,

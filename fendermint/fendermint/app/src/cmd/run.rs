@@ -313,11 +313,11 @@ fn to_resolver_config(settings: &Settings) -> anyhow::Result<ipc_ipld_resolver::
 
     let r = &settings.resolver;
 
-    let local_key = {
+    let local_key: Keypair = {
         let path = r.network.local_key(settings.home_dir());
         let sk = read_secret_key(&path)?;
-        let sk = secp256k1::SecretKey::from_bytes(sk.serialize())?;
-        Keypair::Secp256k1(secp256k1::Keypair::from(sk))
+        let sk = secp256k1::SecretKey::try_from_bytes(sk.serialize())?;
+        secp256k1::Keypair::from(sk).into()
     };
 
     let network_name = format!(

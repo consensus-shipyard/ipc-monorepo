@@ -41,10 +41,8 @@ use libp2p::{
         transport::{Boxed, MemoryTransport},
     },
     identity::Keypair,
-    mplex,
     multiaddr::Protocol,
-    plaintext::PlainText2Config,
-    yamux, Multiaddr, PeerId, Transport,
+    plaintext, yamux, Multiaddr, PeerId, Transport,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
@@ -100,7 +98,7 @@ impl ClusterBuilder {
             let config = &self.agents[i].config;
             let peer_id = config.network.local_peer_id();
             let mut addr = config.connection.listen_addr.clone();
-            addr.push(Protocol::P2p(peer_id.into()));
+            addr.push(Protocol::P2p(peer_id));
             addr
         });
         let config = make_config(&mut self.rng, self.size, bootstrap_addr);
@@ -339,17 +337,15 @@ fn make_config(rng: &mut StdRng, cluster_size: u32, bootstrap_addr: Option<Multi
 
 /// Builds an in-memory transport for libp2p to communicate over.
 fn build_transport(local_key: Keypair) -> Boxed<(PeerId, StreamMuxerBox)> {
-    let auth_config = PlainText2Config {
-        local_public_key: local_key.public(),
-    };
+    let auth_config = plaintext::Config::new(&local_key);
 
     let mplex_config = {
-        let mut mplex_config = mplex::MplexConfig::new();
+        let mut mplex_config = libp2p_mplex::MplexConfig::new();
         mplex_config.set_max_buffer_size(usize::MAX);
 
-        let mut yamux_config = yamux::YamuxConfig::default();
-        yamux_config.set_max_buffer_size(16 * 1024 * 1024);
-        yamux_config.set_receive_window_size(16 * 1024 * 1024);
+        let yamux_config = yamux::Config::default();
+        // yamux_config.set_receive_window_size(16 * 1024 * 1024);
+        // yamux_config.set_max_buffer_size(16 * 1024 * 1024);
         // yamux_config.set_window_update_mode(WindowUpdateMode::OnRead);
         libp2p::core::upgrade::SelectUpgrade::new(yamux_config, mplex_config)
     };

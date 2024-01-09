@@ -1,29 +1,25 @@
 // Copyright 2022-2023 Protocol Labs
 // SPDX-License-Identifier: MIT
-use std::hash::Hash;
 use std::time::{Duration, Instant};
 
 use gcra::GcraState;
 pub use gcra::RateLimit;
-use libp2p::gossipsub::time_cache::TimeCache;
+use lru_time_cache::LruCache;
 
 /// Track the rate limit of resources (e.g. bytes) consumed per key.
 ///
 /// Forgets keys after long periods of inactivity.
 pub struct RateLimiter<K> {
-    // `TimeCache` uses `Instant::now()` internally.
-    // It's less testable than `gcra` which allows the time to be passed in,
-    // but it's only used for cleaning up, so it should be okay.
-    cache: TimeCache<K, GcraState>,
+    cache: LruCache<K, GcraState>,
 }
 
 impl<K> RateLimiter<K>
 where
-    K: Eq + Hash + Clone,
+    K: Ord + Clone,
 {
     pub fn new(ttl: Duration) -> Self {
         Self {
-            cache: TimeCache::new(ttl),
+            cache: LruCache::with_expiry_duration(ttl),
         }
     }
 

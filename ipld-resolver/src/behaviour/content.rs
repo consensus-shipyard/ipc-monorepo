@@ -9,19 +9,16 @@ use std::{
 
 use libipld::{store::StoreParams, Cid};
 use libp2p::{
-    core::ConnectedPoint,
+    core::{ConnectedPoint, Endpoint},
     futures::channel::oneshot,
     multiaddr::Protocol,
-    request_response::handler::RequestResponseHandlerEvent,
     swarm::{
         derive_prelude::{ConnectionId, FromSwarm},
-        ConnectionHandler, IntoConnectionHandler, NetworkBehaviour, NetworkBehaviourAction,
-        PollParameters,
+        ConnectionDenied, NetworkBehaviour, THandler, THandlerInEvent, THandlerOutEvent, ToSwarm,
     },
     Multiaddr, PeerId,
 };
 use libp2p_bitswap::{Bitswap, BitswapConfig, BitswapEvent, BitswapResponse, BitswapStore};
-use log::warn;
 use prometheus::Registry;
 
 use crate::{
@@ -54,6 +51,7 @@ pub enum Event {
     /// This is only raised if we are tracking rate limits. The service has to
     /// do the forwarding between the two oneshot channels, and call this module
     /// back between doing so.
+    #[allow(dead_code)]
     BitswapForward {
         peer_id: PeerId,
         /// Receive response from the [`Bitswap`] behaviour.
@@ -146,6 +144,7 @@ impl<P: StoreParams> Behaviour<P> {
     }
 
     /// Check whether the peer has already exhaused their rate limit.
+    #[allow(dead_code)]
     fn check_rate_limit(&mut self, peer_id: &PeerId, cid: &Cid) -> bool {
         if let Some(ref rate_limit) = self.rate_limit {
             if let Some(addr) = self.peer_addresses.get(peer_id).cloned() {
@@ -181,17 +180,9 @@ impl<P: StoreParams> Behaviour<P> {
 
 impl<P: StoreParams> NetworkBehaviour for Behaviour<P> {
     type ConnectionHandler = <Bitswap<P> as NetworkBehaviour>::ConnectionHandler;
-    type OutEvent = Event;
+    type ToSwarm = Event;
 
-    fn new_handler(&mut self) -> Self::ConnectionHandler {
-        self.inner.new_handler()
-    }
-
-    fn addresses_of_peer(&mut self, peer_id: &PeerId) -> Vec<Multiaddr> {
-        self.inner.addresses_of_peer(peer_id)
-    }
-
-    fn on_swarm_event(&mut self, event: FromSwarm<Self::ConnectionHandler>) {
+    fn on_swarm_event(&mut self, event: FromSwarm) {
         // Store the remote address.
         match &event {
             FromSwarm::ConnectionEstablished(c) => {
@@ -226,61 +217,121 @@ impl<P: StoreParams> NetworkBehaviour for Behaviour<P> {
         &mut self,
         peer_id: PeerId,
         connection_id: ConnectionId,
-        event: <<Self::ConnectionHandler as IntoConnectionHandler>::Handler as ConnectionHandler>::OutEvent,
+        event: THandlerOutEvent<Self>,
     ) {
-        match event {
-            RequestResponseHandlerEvent::Request {
-                request_id,
-                request,
-                sender,
-            } if self.rate_limit.is_some() => {
-                if !self.check_rate_limit(&peer_id, &request.cid) {
-                    warn!("rate limiting {peer_id}");
-                    stats::CONTENT_RATE_LIMITED.inc();
-                    return;
-                }
-                // We need to hijack the response channel to record the size, otherwise it goes straight to the handler.
-                let (tx, rx) = libp2p::futures::channel::oneshot::channel();
-                let event = RequestResponseHandlerEvent::Request {
-                    request_id,
-                    request,
-                    sender: tx,
-                };
+        // TODO: `request_response::handler` is now private, so we cannot pattern match on the handler event.
+        // By the looks of the only way to access the request event is to let it go right into the RR protocol
+        // wrapped by the Bitswap behaviour and let it raise an event, however we will not see that event here.
+        // I'm not sure what we can do without moving rate limiting into the bitswap library itself, because
+        // what we did here relied on the ability to redirect the channels inside the request, but if the event
+        // itself is private to the `request_response` protocol there's nothing I can do.
+        // match event {
 
-                self.inner
-                    .on_connection_handler_event(peer_id, connection_id, event);
+        //     request_response::handler::Event::Request {
+        //         request_id,
+        //         request,
+        //         sender,
+        //     } if self.rate_limit.is_some() => {
+        //         if !self.check_rate_limit(&peer_id, &request.cid) {
+        //             warn!("rate limiting {peer_id}");
+        //             stats::CONTENT_RATE_LIMITED.inc();
+        //             return;
+        //         }
+        //         // We need to hijack the response channel to record the size, otherwise it goes straight to the handler.
+        //         let (tx, rx) = libp2p::futures::channel::oneshot::channel();
+        //         let event = request_response::Event::Request {
+        //             request_id,
+        //             request,
+        //             sender: tx,
+        //         };
 
-                let forward = Event::BitswapForward {
-                    peer_id,
-                    response_rx: rx,
-                    response_tx: sender,
-                };
-                self.outbox.push_back(forward);
-            }
-            _ => self
-                .inner
-                .on_connection_handler_event(peer_id, connection_id, event),
-        }
+        //         self.inner
+        //             .on_connection_handler_event(peer_id, connection_id, event);
+
+        //         let forward = Event::BitswapForward {
+        //             peer_id,
+        //             response_rx: rx,
+        //             response_tx: sender,
+        //         };
+        //         self.outbox.push_back(forward);
+        //     }
+        //     _ => self
+        //         .inner
+        //         .on_connection_handler_event(peer_id, connection_id, event),
+        // }
+
+        self.inner
+            .on_connection_handler_event(peer_id, connection_id, event)
+    }
+
+    fn handle_pending_inbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        local_addr: &Multiaddr,
+        remote_addr: &Multiaddr,
+    ) -> Result<(), ConnectionDenied> {
+        self.inner
+            .handle_pending_inbound_connection(connection_id, local_addr, remote_addr)
+    }
+
+    fn handle_established_inbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        local_addr: &Multiaddr,
+        remote_addr: &Multiaddr,
+    ) -> Result<THandler<Self>, ConnectionDenied> {
+        self.inner.handle_established_inbound_connection(
+            connection_id,
+            peer,
+            local_addr,
+            remote_addr,
+        )
+    }
+
+    fn handle_pending_outbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        maybe_peer: Option<PeerId>,
+        addresses: &[Multiaddr],
+        effective_role: Endpoint,
+    ) -> Result<Vec<Multiaddr>, ConnectionDenied> {
+        self.inner.handle_pending_outbound_connection(
+            connection_id,
+            maybe_peer,
+            addresses,
+            effective_role,
+        )
+    }
+
+    fn handle_established_outbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        addr: &Multiaddr,
+        role_override: Endpoint,
+    ) -> Result<THandler<Self>, ConnectionDenied> {
+        self.inner
+            .handle_established_outbound_connection(connection_id, peer, addr, role_override)
     }
 
     fn poll(
         &mut self,
         cx: &mut Context<'_>,
-        params: &mut impl PollParameters,
-    ) -> Poll<NetworkBehaviourAction<Self::OutEvent, Self::ConnectionHandler>> {
+    ) -> Poll<ToSwarm<Self::ToSwarm, THandlerInEvent<Self>>> {
         // Emit own events first.
         if let Some(ev) = self.outbox.pop_front() {
-            return Poll::Ready(NetworkBehaviourAction::GenerateEvent(ev));
+            return Poll::Ready(ToSwarm::GenerateEvent(ev));
         }
         // Poll Bitswap.
-        while let Poll::Ready(ev) = self.inner.poll(cx, params) {
+        while let Poll::Ready(ev) = self.inner.poll(cx) {
             match ev {
-                NetworkBehaviourAction::GenerateEvent(ev) => match ev {
+                ToSwarm::GenerateEvent(ev) => match ev {
                     BitswapEvent::Progress(_, _) => {}
                     BitswapEvent::Complete(id, result) => {
                         stats::CONTENT_RESOLVE_RUNNING.dec();
                         let out = Event::Complete(id, result);
-                        return Poll::Ready(NetworkBehaviourAction::GenerateEvent(out));
+                        return Poll::Ready(ToSwarm::GenerateEvent(out));
                     }
                 },
                 other => {

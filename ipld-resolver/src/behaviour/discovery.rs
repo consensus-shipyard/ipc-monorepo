@@ -2,7 +2,6 @@
 // Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: MIT
 use std::{
-    borrow::Cow,
     cmp,
     collections::VecDeque,
     task::{Context, Poll},
@@ -10,20 +9,17 @@ use std::{
 };
 
 use libp2p::{
-    core::connection::ConnectionId,
+    core::Endpoint,
     identify::Info,
-    kad::{
-        handler::KademliaHandlerProto, store::MemoryStore, InboundRequest, Kademlia,
-        KademliaConfig, KademliaEvent, KademliaStoreInserts, QueryId, QueryResult,
-    },
+    kad::{self, store::MemoryStore},
     multiaddr::Protocol,
     swarm::{
-        behaviour::toggle::{Toggle, ToggleIntoConnectionHandler},
+        behaviour::toggle::{Toggle, ToggleConnectionHandler},
         derive_prelude::FromSwarm,
-        ConnectionHandler, IntoConnectionHandler, NetworkBehaviour, NetworkBehaviourAction,
-        PollParameters,
+        ConnectionDenied, ConnectionId, NetworkBehaviour, THandler, THandlerInEvent,
+        THandlerOutEvent, ToSwarm,
     },
-    Multiaddr, PeerId,
+    Multiaddr, PeerId, StreamProtocol,
 };
 use log::{debug, warn};
 use tokio::time::Interval;
@@ -80,9 +76,9 @@ pub struct Behaviour {
     /// Typically includes bootstrap nodes, or it can be used for a static network.
     static_addresses: Vec<(PeerId, Multiaddr)>,
     /// Name of the peer discovery protocol.
-    protocol_name: String,
+    protocol_name: StreamProtocol,
     /// Kademlia behaviour, if enabled.
-    inner: Toggle<Kademlia<MemoryStore>>,
+    inner: Toggle<kad::Behaviour<MemoryStore>>,
     /// Number of current connections.
     num_connections: usize,
     /// Number of connections where further lookups are paused.
@@ -106,8 +102,7 @@ impl Behaviour {
         let mut static_addresses = Vec::new();
         for multiaddr in dc.static_addresses {
             let mut addr = multiaddr.clone();
-            if let Some(Protocol::P2p(mh)) = addr.pop() {
-                let peer_id = PeerId::from_multihash(mh).unwrap();
+            if let Some(Protocol::P2p(peer_id)) = addr.pop() {
                 static_addresses.push((peer_id, addr))
             } else {
                 return Err(ConfigError::InvalidBootstrapAddress(multiaddr));
@@ -116,20 +111,22 @@ impl Behaviour {
 
         let mut outbox = VecDeque::new();
         let protocol_name = format!("/ipc/{}/kad/1.0.0", nc.network_name);
+        let protocol_name =
+            StreamProtocol::try_from_owned(protocol_name).expect("valid protocol name");
 
         let mut bootstrap_buffer = None;
 
         let kademlia_opt = if dc.enable_kademlia {
-            let mut kad_config = KademliaConfig::default();
-            kad_config.set_protocol_names(vec![Cow::Owned(protocol_name.as_bytes().to_vec())]);
+            let mut kad_config = kad::Config::default();
+            kad_config.set_protocol_names(vec![protocol_name.clone()]);
 
             // Disable inserting records into the memory store, so peers cannot send `PutRecord`
             // messages to store content in the memory of our node.
-            kad_config.set_record_filtering(KademliaStoreInserts::FilterBoth);
+            kad_config.set_record_filtering(kad::StoreInserts::FilterBoth);
 
             let store = MemoryStore::new(nc.local_peer_id());
 
-            let mut kademlia = Kademlia::with_config(nc.local_peer_id(), store, kad_config);
+            let mut kademlia = kad::Behaviour::with_config(nc.local_peer_id(), store, kad_config);
 
             // Bootstrap from the seeds. The first seed to stand up might have nobody to bootstrap from,
             // although ideally there would be at least another peer, so we can easily restart it and come back.
@@ -169,7 +166,7 @@ impl Behaviour {
 
     /// Lookup a peer, unless we already know their address, so that we have a chance to connect to them later.
     pub fn background_lookup(&mut self, peer_id: PeerId) {
-        if self.addresses_of_peer(&peer_id).is_empty() {
+        if self.addresses_of_peer(peer_id).is_empty() {
             if let Some(kademlia) = self.inner.as_mut() {
                 stats::DISCOVERY_BACKGROUND_LOOKUP.inc();
                 kademlia.get_closest_peers(peer_id);
@@ -211,30 +208,26 @@ impl Behaviour {
             kademlia.add_address(peer_id, address);
         }
     }
+
+    fn addresses_of_peer(&mut self, peer_id: PeerId) -> Vec<Multiaddr> {
+        self.handle_pending_outbound_connection(
+            ConnectionId::new_unchecked(0),
+            Some(peer_id),
+            &[],
+            Endpoint::Listener,
+        )
+        .unwrap_or_default()
+    }
 }
 
 impl NetworkBehaviour for Behaviour {
-    type ConnectionHandler = ToggleIntoConnectionHandler<KademliaHandlerProto<QueryId>>;
+    type ConnectionHandler = ToggleConnectionHandler<
+        <kad::Behaviour<MemoryStore> as NetworkBehaviour>::ConnectionHandler,
+    >;
 
-    type OutEvent = Event;
+    type ToSwarm = Event;
 
-    fn new_handler(&mut self) -> Self::ConnectionHandler {
-        self.inner.new_handler()
-    }
-
-    fn addresses_of_peer(&mut self, peer_id: &PeerId) -> Vec<Multiaddr> {
-        let mut addrs = self
-            .static_addresses
-            .iter()
-            .filter(|(p, _)| p == peer_id)
-            .map(|(_, a)| a.clone())
-            .collect::<Vec<_>>();
-
-        addrs.extend(self.inner.addresses_of_peer(peer_id));
-        addrs
-    }
-
-    fn on_swarm_event(&mut self, event: FromSwarm<Self::ConnectionHandler>) {
+    fn on_swarm_event(&mut self, event: FromSwarm) {
         match &event {
             FromSwarm::ConnectionEstablished(e) => {
                 if e.other_established == 0 {
@@ -257,20 +250,81 @@ impl NetworkBehaviour for Behaviour {
         &mut self,
         peer_id: PeerId,
         connection_id: ConnectionId,
-        event: <<Self::ConnectionHandler as IntoConnectionHandler>::Handler as ConnectionHandler>::OutEvent,
+        event: THandlerOutEvent<Self>,
     ) {
         self.inner
             .on_connection_handler_event(peer_id, connection_id, event)
     }
 
+    fn handle_pending_inbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        local_addr: &Multiaddr,
+        remote_addr: &Multiaddr,
+    ) -> Result<(), ConnectionDenied> {
+        self.inner
+            .handle_pending_inbound_connection(connection_id, local_addr, remote_addr)
+    }
+
+    fn handle_established_inbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        local_addr: &Multiaddr,
+        remote_addr: &Multiaddr,
+    ) -> Result<THandler<Self>, ConnectionDenied> {
+        self.inner.handle_established_inbound_connection(
+            connection_id,
+            peer,
+            local_addr,
+            remote_addr,
+        )
+    }
+
+    fn handle_pending_outbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        maybe_peer: Option<PeerId>,
+        addresses: &[Multiaddr],
+        effective_role: Endpoint,
+    ) -> Result<Vec<Multiaddr>, ConnectionDenied> {
+        let mut addrs = self.inner.handle_pending_outbound_connection(
+            connection_id,
+            maybe_peer,
+            addresses,
+            effective_role,
+        )?;
+
+        if let Some(peer_id) = maybe_peer {
+            addrs.extend(
+                self.static_addresses
+                    .iter()
+                    .filter(|(p, _)| *p == peer_id)
+                    .map(|(_, a)| a.clone()),
+            );
+        }
+
+        Ok(addrs)
+    }
+
+    fn handle_established_outbound_connection(
+        &mut self,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        addr: &Multiaddr,
+        role_override: Endpoint,
+    ) -> Result<THandler<Self>, ConnectionDenied> {
+        self.inner
+            .handle_established_outbound_connection(connection_id, peer, addr, role_override)
+    }
+
     fn poll(
         &mut self,
         cx: &mut Context<'_>,
-        params: &mut impl PollParameters,
-    ) -> std::task::Poll<NetworkBehaviourAction<Self::OutEvent, Self::ConnectionHandler>> {
+    ) -> Poll<ToSwarm<Self::ToSwarm, THandlerInEvent<Self>>> {
         // Emit own events first.
         if let Some(ev) = self.outbox.pop_front() {
-            return Poll::Ready(NetworkBehaviourAction::GenerateEvent(ev));
+            return Poll::Ready(ToSwarm::GenerateEvent(ev));
         }
 
         // Trigger periodic queries.
@@ -293,25 +347,25 @@ impl NetworkBehaviour for Behaviour {
         }
 
         // Poll Kademlia.
-        while let Poll::Ready(ev) = self.inner.poll(cx, params) {
+        while let Poll::Ready(ev) = self.inner.poll(cx) {
             match ev {
-                NetworkBehaviourAction::GenerateEvent(ev) => {
+                ToSwarm::GenerateEvent(ev) => {
                     match ev {
                         // We get this event for inbound connections, where the remote address may be ephemeral.
-                        KademliaEvent::UnroutablePeer { peer } => {
+                        kad::Event::UnroutablePeer { peer } => {
                             debug!("{peer} unroutable from {}", self.peer_id);
                         }
-                        KademliaEvent::InboundRequest {
-                            request: InboundRequest::PutRecord { source, .. },
+                        kad::Event::InboundRequest {
+                            request: kad::InboundRequest::PutRecord { source, .. },
                         } => {
                             warn!("disallowed Kademlia requests from {source}",)
                         }
                         // Information only.
-                        KademliaEvent::InboundRequest { .. } => {}
+                        kad::Event::InboundRequest { .. } => {}
+                        kad::Event::ModeChanged { .. } => {}
                         // Finish bootstrapping.
-                        KademliaEvent::OutboundQueryProgressed { result, step, .. } => match result
-                        {
-                            QueryResult::Bootstrap(result) if step.last => {
+                        kad::Event::OutboundQueryProgressed { result, step, .. } => match result {
+                            kad::QueryResult::Bootstrap(result) if step.last => {
                                 debug!("Bootstrapping finished with {result:?}");
                                 if let Some(buffer) = self.bootstrap_buffer.take() {
                                     debug!("Adding {} self-identified peers.", buffer.len());
@@ -325,17 +379,17 @@ impl NetworkBehaviour for Behaviour {
                         // The config ensures peers are added to the table if there's room.
                         // We're not emitting these as known peers because the address will probably not be returned by `addresses_of_peer`,
                         // so the outside service would have to keep track, which is not what we want.
-                        KademliaEvent::RoutablePeer { peer, .. } => {
+                        kad::Event::RoutablePeer { peer, .. } => {
                             debug!("Kademlia in manual mode or bucket full, cannot add {peer}");
                         }
                         // Unfortunately, looking at the Kademlia behaviour, it looks like when it goes from pending to active,
                         // it won't emit another event, so we might as well tentatively emit an event here.
-                        KademliaEvent::PendingRoutablePeer { peer, address } => {
+                        kad::Event::PendingRoutablePeer { peer, address } => {
                             debug!("{peer} pending to the routing table of {}", self.peer_id);
                             self.outbox.push_back(Event::Added(peer, vec![address]))
                         }
                         // This event should ensure that we will be able to answer address lookups later.
-                        KademliaEvent::RoutingUpdated {
+                        kad::Event::RoutingUpdated {
                             peer,
                             addresses,
                             old_peer,

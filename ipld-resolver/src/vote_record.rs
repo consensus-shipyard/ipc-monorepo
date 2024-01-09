@@ -19,7 +19,7 @@ impl Serialize for ValidatorKey {
     where
         S: serde::Serializer,
     {
-        let bz = self.0.to_protobuf_encoding();
+        let bz = self.0.encode_protobuf();
         bz.serialize(serializer)
     }
 }
@@ -30,7 +30,7 @@ impl<'de> Deserialize<'de> for ValidatorKey {
         D: serde::Deserializer<'de>,
     {
         let bz = Vec::<u8>::deserialize(deserializer)?;
-        match PublicKey::from_protobuf_encoding(&bz) {
+        match PublicKey::try_decode_protobuf(&bz) {
             Ok(pk) => Ok(Self(pk)),
             Err(e) => Err(D::Error::custom(format!("error decoding PublicKey: {e}"))),
         }
