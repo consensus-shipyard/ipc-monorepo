@@ -38,7 +38,7 @@ dependencies = ["simplecoin-example", "ethers-example"]
 script = """
 cd ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/fendermint
 cargo run -p fendermint_rpc --release --example simplecoin -- \
-  --secret-key fendermint/testing/smoke-test/test-data/keys/alice.sk \
+  --secret-key testing/smoke-test/test-data/keys/alice.sk \
   ${VERBOSITY}
 """
 
@@ -47,6 +47,6 @@ cargo run -p fendermint_rpc --release --example simplecoin -- \
 script = """
 cd ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/fendermint
 cargo run -p fendermint_eth_api --release --example ethers -- \
-  --secret-key-from fendermint/testing/smoke-test/test-data/keys/emily.sk \
-  --secret-key-to   fendermint/testing/smoke-test/test-data/keys/eric.sk
+  --secret-key-from testing/smoke-test/test-data/keys/emily.sk \
+  --secret-key-to   testing/smoke-test/test-data/keys/eric.sk
 """
