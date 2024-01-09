@@ -1,0 +1,53 @@
+extend = [
+  { path = "../scripts/common.toml" },
+]
+
+env_files = [
+  { path = "./scripts/graph.env" },
+  { path = "../scripts/common.env" },
+  { path = "../scripts/ci.env", profile = "ci" },
+]
+
+[tasks.test-data-env]
+script = """
+cat << EOF > ${TEST_DATA_DIR}/.env
+CMT_P2P_MAX_NUM_OUTBOUND_PEERS=0
+CMT_CONSENSUS_TIMEOUT_COMMIT=1s
+EOF
+"""
+
+[tasks.test]
+clear = true
+run_task = { name = [
+  "greeter-example",
+  "graph-setup",
+], fork = true, cleanup_task = "graph-teardown" }
+
+
+# Run the Greeter example and export the data to a file where we can pick it up from
+# and put it into the subgraph.yaml file.
+[tasks.greeter-example]
+script = """
+cd ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/fendermint
+cargo run -p fendermint_eth_api --release --example greeter -- \
+  --secret-key fendermint/testing/graph-test/test-data/keys/veronica.sk \
+  --out ${TEST_DATA_DIR}/greeter.json \
+  ${VERBOSITY}
+"""
+
+[tasks.graph-setup]
+script = """
+echo "TODO: configure the graph"
+cat ${TEST_DATA_DIR}/greeter.json
+echo "TODO: docker-compose up the graph"
+"""
+
+[tasks.graph-test]
+script = """
+echo "TODO: run GraphQuery with curl"
+"""
+
+[tasks.graph-teardown]
+script = """
+echo "TODO: docker-compose down the graph"
+"""

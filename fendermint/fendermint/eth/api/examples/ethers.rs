@@ -28,35 +28,34 @@
 
 use std::{
     fmt::{Debug, Display},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Arc,
-    time::Duration,
 };
 
 use anyhow::{anyhow, Context};
 use clap::Parser;
+use common::TestMiddleware;
 use ethers::providers::StreamExt;
 use ethers::{
-    prelude::{abigen, ContractCall, ContractFactory, SignerMiddleware},
+    prelude::{abigen, ContractFactory},
     providers::{FilterKind, Http, JsonRpcClient, Middleware, Provider, Ws},
-    signers::{Signer, Wallet},
+    signers::Signer,
 };
 use ethers_core::{
     abi::Abi,
-    k256::ecdsa::SigningKey,
     types::{
         transaction::eip2718::TypedTransaction, Address, BlockId, BlockNumber, Bytes,
-        Eip1559TransactionRequest, Filter, Log, SyncingStatus, TransactionReceipt, TxHash, H160,
-        H256, U256, U64,
+        Eip1559TransactionRequest, Filter, Log, SyncingStatus, TransactionReceipt, TxHash, H256,
+        U256, U64,
     },
 };
-use fendermint_crypto::SecretKey;
-use fendermint_rpc::message::MessageFactory;
-use fendermint_vm_actor_interface::eam::EthAddress;
 use tracing::Level;
 
-type TestMiddleware<C> = SignerMiddleware<Provider<C>, Wallet<SigningKey>>;
-type TestContractCall<C, T> = ContractCall<TestMiddleware<C>, T>;
+use crate::common::{
+    adjust_provider, make_middleware, prepare_call, send_transaction, TestAccount, TestContractCall,
+};
+
+mod common;
 
 /// Gas limit to set for transactions.
 const ENOUGH_GAS: u64 = 10_000_000_000u64;
@@ -162,24 +161,6 @@ where
             Err(e) => Err(anyhow!("failed to check {method}: {e}:\n{value:?}")),
         },
         Err(e) => Err(anyhow!("failed to call {method}: {e:#}")),
-    }
-}
-
-struct TestAccount {
-    secret_key: SecretKey,
-    eth_addr: H160,
-}
-
-impl TestAccount {
-    pub fn new(sk: &Path) -> anyhow::Result<Self> {
-        let sk = MessageFactory::read_secret_key(sk)?;
-        let ea = EthAddress::from(sk.public_key());
-        let h = Address::from_slice(&ea.0);
-
-        Ok(Self {
-            secret_key: sk,
-            eth_addr: h,
-        })
     }
 }
 
@@ -793,14 +774,6 @@ async fn run_ws(mut provider: Provider<Ws>, opts: &Options) -> anyhow::Result<()
     Ok(())
 }
 
-fn adjust_provider<C>(provider: &mut Provider<C>)
-where
-    C: JsonRpcClient,
-{
-    // Tendermint block interval is lower.
-    provider.set_interval(Duration::from_secs(2));
-}
-
 async fn make_transfer<C>(
     mw: &TestMiddleware<C>,
     to: &TestAccount,
@@ -822,60 +795,4 @@ where
     mw.fill_transaction(&mut tx, None).await?;
 
     Ok(tx)
-}
-
-/// Send a transaction and await the receipt.
-async fn send_transaction<C>(
-    mw: &TestMiddleware<C>,
-    tx: TypedTransaction,
-    label: &str,
-) -> anyhow::Result<TransactionReceipt>
-where
-    C: JsonRpcClient + 'static,
-{
-    // `send_transaction` will fill in the missing fields like `from` and `nonce` (which involves querying the API).
-    let receipt = mw
-        .send_transaction(tx, None)
-        .await
-        .context("failed to send transaction")?
-        .log_msg(format!("Pending transaction: {label}"))
-        .retries(5)
-        .await?
-        .context("Missing receipt")?;
-
-    Ok(receipt)
-}
-
-/// Create a middleware that will assign nonces and sign the message.
-fn make_middleware<C>(
-    provider: Provider<C>,
-    chain_id: u64,
-    sender: &TestAccount,
-) -> anyhow::Result<TestMiddleware<C>>
-where
-    C: JsonRpcClient,
-{
-    // We have to use Ethereum's signing scheme, beause the `from` is not part of the RLP representation,
-    // it is inferred from the public key recovered from the signature. We could potentially hash the
-    // transaction in a different way, but we can't for example use the actor ID in the hash, because
-    // we have no way of sending it along with the message.
-    let wallet: Wallet<SigningKey> =
-        Wallet::from_bytes(&sender.secret_key.serialize().as_ref())?.with_chain_id(chain_id);
-
-    Ok(SignerMiddleware::new(provider, wallet))
-}
-
-/// Fill the transaction fields such as gas and nonce.
-async fn prepare_call<C, T>(
-    mw: &TestMiddleware<C>,
-    mut call: TestContractCall<C, T>,
-) -> anyhow::Result<TestContractCall<C, T>>
-where
-    C: JsonRpcClient + 'static,
-{
-    mw.fill_transaction(&mut call.tx, Some(BlockId::Number(BlockNumber::Latest)))
-        .await
-        .context("failed to fill transaction")?;
-
-    Ok(call)
 }

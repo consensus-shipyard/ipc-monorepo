@@ -43,8 +43,9 @@ test: $(BUILTIN_ACTORS_BUNDLE) $(IPC_ACTORS_GEN)
 	cargo test --release $(PACKAGE)
 
 e2e: docker-build | cargo-make
-	cd fendermint/testing/smoke-test && cargo make --profile $(PROFILE)
+	cd fendermint/testing/smoke-test    && cargo make --profile $(PROFILE)
 	cd fendermint/testing/snapshot-test && cargo make --profile $(PROFILE)
+	cd fendermint/testing/graph-test    && cargo make --profile $(PROFILE)
 
 clean:
 	cargo clean
