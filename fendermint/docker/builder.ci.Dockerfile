@@ -20,7 +20,7 @@ COPY . .
 RUN find . -type f \! -name "Cargo.*" | xargs rm -rf
 
 # Construct dummy sources. Add a print to help debug the case if we failed to properly replace the file.
-RUN echo "fn main() { println!(\"I'm the dummy.\"); }" > fendermint/fendermint/app/src/main.rs && \
+RUN echo "fn main() { println!(\"I'm the dummy.\"); }" > fendermint/app/src/main.rs && \
   for crate in $(find . -name "Cargo.toml" | xargs dirname | grep -v infra | grep -v node_modules | grep /); do \
   touch $crate/src/lib.rs; \
   done
@@ -84,4 +84,4 @@ RUN set -eux; \
   amd64) ARCH='x86_64'  ;; \
   arm64) ARCH='aarch64' ;; \
   esac; \
-  cargo install --locked --root output --path fendermint/fendermint/app --target ${ARCH}-unknown-linux-gnu
+  cargo install --locked --root output --path fendermint/app --target ${ARCH}-unknown-linux-gnu

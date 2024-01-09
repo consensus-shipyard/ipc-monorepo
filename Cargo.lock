@@ -1765,16 +1765,6 @@ dependencies = [
 
 [[package]]
 name = "darling"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f2c43f534ea4b0b049015d00269734195e6d3f0f6635cb692251aca6f9f8b3c"
-dependencies = [
- "darling_core 0.12.4",
- "darling_macro 0.12.4",
-]
-
-[[package]]
-name = "darling"
 version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b750cb3417fd1b327431a470f388520309479ab0bf5e323505daf0290cd3850"
@@ -1791,20 +1781,6 @@ checksum = "0209d94da627ab5605dcccf08bb18afa5009cfbef48d8a8b7d7bdbc79be25c5e"
 dependencies = [
  "darling_core 0.20.3",
  "darling_macro 0.20.3",
-]
-
-[[package]]
-name = "darling_core"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e91455b86830a1c21799d94524df0845183fa55bafd9aa137b01c7d1065fa36"
-dependencies = [
- "fnv",
- "ident_case",
- "proc-macro2",
- "quote",
- "strsim 0.10.0",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -1833,17 +1809,6 @@ dependencies = [
  "quote",
  "strsim 0.10.0",
  "syn 2.0.42",
-]
-
-[[package]]
-name = "darling_macro"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29b5acf0dea37a7f66f7b25d2c5e93fd46f8f6968b1a5d7a3e02e97768afc95a"
-dependencies = [
- "darling_core 0.12.4",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -1969,32 +1934,11 @@ dependencies = [
 
 [[package]]
 name = "derive_builder"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d13202debe11181040ae9063d739fa32cfcaaebe2275fe387703460ae2365b30"
-dependencies = [
- "derive_builder_macro 0.10.2",
-]
-
-[[package]]
-name = "derive_builder"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d07adf7be193b71cc36b193d0f5fe60b918a3a9db4dad0449f57bcfd519704a3"
 dependencies = [
- "derive_builder_macro 0.11.2",
-]
-
-[[package]]
-name = "derive_builder_core"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66e616858f6187ed828df7c64a6d71720d83767a7f19740b2d1b6fe6327b36e5"
-dependencies = [
- "darling 0.12.4",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
+ "derive_builder_macro",
 ]
 
 [[package]]
@@ -2011,21 +1955,11 @@ dependencies = [
 
 [[package]]
 name = "derive_builder_macro"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58a94ace95092c5acb1e97a7e846b310cfbd499652f72297da7493f618a98d73"
-dependencies = [
- "derive_builder_core 0.10.2",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "derive_builder_macro"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f0314b72bed045f3a68671b3c86328386762c93f82d98c65c3cb5e5f573dd68"
 dependencies = [
- "derive_builder_core 0.11.2",
+ "derive_builder_core",
  "syn 1.0.109",
 ]
 
@@ -2919,8 +2853,8 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "ipc_ipld_resolver",
  "k256 0.11.6",
  "libipld",
@@ -2960,9 +2894,9 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
+ "ipc-types",
  "num-traits",
- "primitives",
  "tendermint-rpc",
  "tracing",
  "url",
@@ -2979,8 +2913,8 @@ dependencies = [
  "fendermint_vm_topdown",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "multiaddr 0.16.0",
  "serde",
  "serde_with",
@@ -3006,7 +2940,7 @@ dependencies = [
  "fvm_ipld_blockstore",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "rand 0.8.5",
  "tendermint-rpc",
@@ -3150,7 +3084,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "lazy_static",
  "num-bigint",
  "quickcheck 1.0.3",
@@ -3175,7 +3109,7 @@ dependencies = [
  "fvm_ipld_hamt",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "lazy_static",
  "merkle-tree-rs",
@@ -3210,7 +3144,7 @@ version = "0.1.0"
 dependencies = [
  "cid",
  "fvm_shared",
- "ipc-sdk",
+ "ipc-api",
  "num-traits",
  "serde",
  "serde_with",
@@ -3231,7 +3165,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "num-traits",
  "quickcheck 1.0.3",
  "quickcheck_macros",
@@ -3269,7 +3203,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "ipc_actors_abis",
  "libipld",
  "num-traits",
@@ -3307,7 +3241,7 @@ dependencies = [
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-sdk",
+ "ipc-api",
  "lazy_static",
  "num-traits",
  "quickcheck 1.0.3",
@@ -3326,7 +3260,7 @@ dependencies = [
  "async-stm",
  "cid",
  "im",
- "ipc-sdk",
+ "ipc-api",
  "ipc_ipld_resolver",
  "tokio",
  "tracing",
@@ -3379,8 +3313,8 @@ dependencies = [
  "ethers",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
  "ipc_actors_abis",
  "num-traits",
  "serde",
@@ -3424,51 +3358,12 @@ name = "fil_actors_evm_shared"
 version = "11.0.0"
 source = "git+https://github.com/filecoin-project/builtin-actors?tag=v11.0.0#cd9ac2bb0afcca7a59465e57cee6569e69070d7a"
 dependencies = [
- "fil_actors_runtime 11.0.0",
+ "fil_actors_runtime",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
  "serde",
  "uint",
-]
-
-[[package]]
-name = "fil_actors_runtime"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "base64 0.21.5",
- "blake2b_simd",
- "byteorder",
- "castaway",
- "cid",
- "derive_builder 0.10.2",
- "frc42_dispatch",
- "fvm_ipld_amt 0.4.2",
- "fvm_ipld_blockstore",
- "fvm_ipld_encoding 0.3.3",
- "fvm_ipld_hamt",
- "fvm_sdk",
- "fvm_shared",
- "getrandom 0.2.11",
- "hex",
- "indexmap 1.9.3",
- "integer-encoding",
- "itertools 0.10.5",
- "lazy_static",
- "log",
- "multihash 0.16.3",
- "num-derive",
- "num-traits",
- "paste",
- "rand 0.8.5",
- "regex",
- "serde",
- "serde_repr",
- "serde_tuple",
- "sha2 0.10.8",
- "thiserror",
- "unsigned-varint",
 ]
 
 [[package]]
@@ -3685,44 +3580,6 @@ dependencies = [
  "byteorder",
  "ff 0.12.1",
  "thiserror",
-]
-
-[[package]]
-name = "frc42_dispatch"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6fda233581861602b8c1c0922a44d79977cb0f56cfe1c3b71eafb589d1da749"
-dependencies = [
- "frc42_hasher",
- "frc42_macros",
- "fvm_ipld_encoding 0.3.3",
- "fvm_sdk",
- "fvm_shared",
- "thiserror",
-]
-
-[[package]]
-name = "frc42_hasher"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad1cf7cebdc57c39906ba8b1148cde4a633cd76614131b983eb4c07f35c735d0"
-dependencies = [
- "fvm_sdk",
- "fvm_shared",
- "thiserror",
-]
-
-[[package]]
-name = "frc42_macros"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9479347c6b83b53f1c041045e9954e3213bb6d1cfc9d2f2927340765a1aabd58"
-dependencies = [
- "blake2b_simd",
- "frc42_hasher",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -4045,21 +3902,6 @@ dependencies = [
  "once_cell",
  "serde",
  "sha2 0.10.8",
- "thiserror",
-]
-
-[[package]]
-name = "fvm_sdk"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db8ac1214ca6c31bcbb4e2e7461cd17af18e0496b9053547d465f15c8d8429a7"
-dependencies = [
- "cid",
- "fvm_ipld_encoding 0.3.3",
- "fvm_shared",
- "lazy_static",
- "log",
- "num-traits",
  "thiserror",
 ]
 
@@ -4776,6 +4618,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59ce5ef949d49ee85593fc4d3f3f95ad61657076395cbbce23e2121fc5542074"
 
 [[package]]
+name = "ipc-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cid",
+ "ethers",
+ "fil_actors_runtime",
+ "fnv",
+ "fvm_ipld_blockstore",
+ "fvm_ipld_encoding 0.3.3",
+ "fvm_ipld_hamt",
+ "fvm_shared",
+ "integer-encoding",
+ "ipc-types",
+ "ipc_actors_abis",
+ "lazy_static",
+ "log",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "serde_tuple",
+ "thiserror",
+]
+
+[[package]]
 name = "ipc-cli"
 version = "0.1.0"
 dependencies = [
@@ -4790,19 +4657,19 @@ dependencies = [
  "env_logger 0.10.1",
  "ethers",
  "ethers-contract",
- "fil_actors_runtime 11.0.0",
+ "fil_actors_runtime",
  "futures-util",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
- "ipc-identity",
+ "ipc-api",
  "ipc-provider",
- "ipc-sdk",
+ "ipc-types",
+ "ipc-wallet",
  "libsecp256k1",
  "log",
  "num-derive",
  "num-traits",
- "primitives",
  "reqwest",
  "serde",
  "serde_bytes",
@@ -4814,36 +4681,6 @@ dependencies = [
  "tokio-tungstenite 0.18.0",
  "toml 0.7.8",
  "url",
- "zeroize",
-]
-
-[[package]]
-name = "ipc-identity"
-version = "0.1.0"
-dependencies = [
- "ahash 0.8.6",
- "anyhow",
- "argon2",
- "base64 0.21.5",
- "blake2b_simd",
- "bls-signatures",
- "ethers",
- "fvm_shared",
- "hex",
- "libc",
- "libsecp256k1",
- "log",
- "primitives",
- "quickcheck 1.0.3",
- "quickcheck_macros",
- "rand 0.8.5",
- "serde",
- "serde_ipld_dagcbor",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "xsalsa20poly1305",
  "zeroize",
 ]
 
@@ -4860,19 +4697,19 @@ dependencies = [
  "dirs",
  "ethers",
  "ethers-contract",
- "fil_actors_runtime 11.0.0",
+ "fil_actors_runtime",
  "futures-util",
  "fvm_ipld_encoding 0.3.3",
  "fvm_shared",
  "hex",
  "indoc",
- "ipc-identity",
- "ipc-sdk",
+ "ipc-api",
+ "ipc-types",
+ "ipc-wallet",
  "ipc_actors_abis",
  "log",
  "num-derive",
  "num-traits",
- "primitives",
  "reqwest",
  "serde",
  "serde_bytes",
@@ -4889,28 +4726,56 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipc-sdk"
+name = "ipc-types"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "cid",
- "ethers",
- "fil_actors_runtime 11.0.0",
- "fnv",
+ "fvm_ipld_amt 0.4.2",
  "fvm_ipld_blockstore",
  "fvm_ipld_encoding 0.3.3",
  "fvm_ipld_hamt",
  "fvm_shared",
+ "hex",
+ "indexmap 1.9.3",
  "integer-encoding",
- "ipc_actors_abis",
  "lazy_static",
  "log",
+ "num-derive",
  "num-traits",
- "primitives",
  "serde",
- "serde_json",
- "serde_tuple",
  "thiserror",
+ "uint",
+]
+
+[[package]]
+name = "ipc-wallet"
+version = "0.1.0"
+dependencies = [
+ "ahash 0.8.6",
+ "anyhow",
+ "argon2",
+ "base64 0.21.5",
+ "blake2b_simd",
+ "bls-signatures",
+ "ethers",
+ "fvm_shared",
+ "hex",
+ "ipc-types",
+ "libc",
+ "libsecp256k1",
+ "log",
+ "quickcheck 1.0.3",
+ "quickcheck_macros",
+ "rand 0.8.5",
+ "serde",
+ "serde_ipld_dagcbor",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "xsalsa20poly1305",
+ "zeroize",
 ]
 
 [[package]]
@@ -4936,7 +4801,7 @@ dependencies = [
  "fvm_ipld_hamt",
  "fvm_shared",
  "gcra",
- "ipc-sdk",
+ "ipc-api",
  "ipc_ipld_resolver",
  "lazy_static",
  "libipld",
@@ -7139,28 +7004,6 @@ dependencies = [
  "impl-rlp",
  "impl-serde",
  "scale-info",
- "uint",
-]
-
-[[package]]
-name = "primitives"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cid",
- "fil_actors_runtime 0.0.1",
- "fvm_ipld_blockstore",
- "fvm_ipld_encoding 0.3.3",
- "fvm_ipld_hamt",
- "fvm_shared",
- "hex",
- "indexmap 1.9.3",
- "integer-encoding",
- "lazy_static",
- "log",
- "num-derive",
- "num-traits",
- "serde",
  "uint",
 ]
 
@@ -10435,7 +10278,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ef36a4d12baa6e842582fe9ec16a57184ba35e1a09308307b67d43ec8883100"
 dependencies = [
  "bytes",
- "derive_builder 0.11.2",
+ "derive_builder",
  "log",
  "thiserror",
  "tokio",

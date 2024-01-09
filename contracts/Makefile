@@ -63,7 +63,7 @@ check-subnet:
 # Development support
 
 lint: fmt
-	solhint 'src/**/*.sol'
+	npx solhint 'src/**/*.sol'
 
 fmt:
 	npm install --silent --no-save

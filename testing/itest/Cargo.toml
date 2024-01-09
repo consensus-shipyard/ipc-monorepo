@@ -1,0 +1,20 @@
+[package]
+name = "itest"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = "1.28.1"
+env_logger = "0.10.0"
+anyhow = { workspace = true }
+log = { workspace = true }
+fvm_shared = { workspace = true }
+serde_json = { workspace = true }
+num-traits = { workspace = true }
+serde = { workspace = true }
+
+ipc-agent = { path = "../../daemon" }
+ipc-wallet = { path = "../../wallet" }
+ipc-provider = { path = "../../provider" }

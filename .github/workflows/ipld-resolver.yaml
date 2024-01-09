@@ -19,7 +19,7 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - name: Check code formatting
-        run: cd ipld-resolver && make check-fmt
+        run: cd ipld/resolver && make check-fmt
 
       # - name: Check diagrams
       #   run: make check-diagrams
@@ -79,4 +79,4 @@ jobs:
           [ -d contracts/out ] || (cd contracts && make compile-abi)
 
       - name: ${{ matrix.make.name }}
-        run: cd ipld-resolver && make ${{ matrix.make.task }}
+        run: cd ipld/resolver && make ${{ matrix.make.task }}

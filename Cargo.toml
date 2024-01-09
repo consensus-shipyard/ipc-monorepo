@@ -3,32 +3,28 @@ resolver = "2"
 members = [
   # contracts
   "contracts/binding",
-  # fvm-utils,
-  "fvm-utils/primitives",
-  # Runtime is no longer needed. `primitives` will be moved under `ipc`
-  # "fvm-utils/runtime",
-  # ipc
-  "ipc/ipc/cli",
-  "ipc/ipc/identity",
-  "ipc/ipc/provider",
-  "ipc/ipc/sdk",
+  "cli",
+  "ipc/wallet",
+  "ipc/provider",
+  "ipc/api",
+  "ipc/types",
   # Tests seem to be obsolete (using IPC agent):
   # "ipc/ipc/testing/*",
   # resolver
-  "ipld-resolver",
+  "ipld/resolver",
   # fendermint
-  "fendermint/fendermint/abci",
-  "fendermint/fendermint/app",
-  "fendermint/fendermint/app/options",
-  "fendermint/fendermint/crypto",
-  "fendermint/fendermint/app/settings",
-  "fendermint/fendermint/eth/*",
-  "fendermint/fendermint/rocksdb",
-  "fendermint/fendermint/rpc",
-  "fendermint/fendermint/storage",
-  "fendermint/fendermint/testing",
-  "fendermint/fendermint/testing/*-test",
-  "fendermint/fendermint/vm/*",
+  "fendermint/abci",
+  "fendermint/app",
+  "fendermint/app/options",
+  "fendermint/crypto",
+  "fendermint/app/settings",
+  "fendermint/eth/*",
+  "fendermint/rocksdb",
+  "fendermint/rpc",
+  "fendermint/storage",
+  "fendermint/testing",
+  "fendermint/testing/*-test",
+  "fendermint/vm/*",
 ]
 
 [workspace.package]
@@ -138,11 +134,11 @@ ethers-contract = "2.0.8"
 integer-encoding = {version = "3.0.3", default-features = false}
 
 # Workspace deps
-ipc-sdk = { path = "ipc/ipc/sdk" }
-ipc-provider = { path = "ipc/ipc/provider" }
-ipc-identity = { path = "ipc/ipc/identity", features = ["with-ethers"] }
-ipc_ipld_resolver = { path = "ipld-resolver" }
-primitives = { path = "fvm-utils/primitives" }
+ipc-api = { path = "ipc/api" }
+ipc-provider = { path = "ipc/provider" }
+ipc-wallet = { path = "ipc/wallet", features = ["with-ethers"] }
+ipc_ipld_resolver = { path = "ipld/resolver" }
+ipc-types = { path = "ipc/types" }
 ipc_actors_abis = { path = "contracts/binding" }
 
 # Vendored for cross-compilation, see https://github.com/cross-rs/cross/wiki/Recipes#openssl

@@ -25,7 +25,6 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       contracts:     ${{ steps.filter.outputs.contracts }}
-      fvm-utils:     ${{ steps.filter.outputs.fvm-utils }}
       ipc:           ${{ steps.filter.outputs.ipc }}
       ipld-resolver: ${{ steps.filter.outputs.ipld-resolver }}
       fendermint:    ${{ steps.filter.outputs.fendermint }}
@@ -40,12 +39,10 @@ jobs:
           filters: |
             contracts:
               - 'contracts/**'
-            fvm-utils:
-              - 'fvm-utils/**'
             ipc:
               - 'ipc/**'
             ipld-resolver:
-              - 'ipld-resolver/**'
+              - 'ipld/resolver/**'
             fendermint:
               - 'fendermint/**'
 
@@ -74,13 +71,6 @@ jobs:
   contracts-sast:
     uses: ./.github/workflows/contracts-sast.yaml
     needs: [contracts-prettier]
-
-  fvm-utils:
-    uses: ./.github/workflows/fvm-utils.yaml
-    needs: [changes, license]
-    if: >-
-      needs.changes.outputs.fvm-utils == 'true' ||
-      github.ref == 'refs/heads/main'
 
   ipc:
     uses: ./.github/workflows/ipc.yaml
@@ -117,7 +107,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs:
       - contracts-test # generates the ABI artifacts (although fendermint can do on its own too)
-      - fvm-utils
       - ipc
       - ipld-resolver
       - fendermint-test
