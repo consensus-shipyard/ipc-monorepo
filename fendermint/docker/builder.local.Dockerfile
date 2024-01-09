@@ -17,4 +17,4 @@ COPY . .
 RUN --mount=type=cache,target=target \
   --mount=type=cache,target=$RUSTUP_HOME,from=rust,source=$RUSTUP_HOME \
   --mount=type=cache,target=$CARGO_HOME,from=rust,source=$CARGO_HOME \
-  cargo install --locked --root output --path fendermint/fendermint/app
+  cargo install --locked --root output --path fendermint/app
