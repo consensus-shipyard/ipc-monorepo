@@ -1,11 +1,12 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
+use crate::actor_error;
 use std::any::type_name;
 use std::marker::PhantomData;
 
 use crate::tcid_ops;
 use anyhow::{anyhow, Result};
-use fil_actors_runtime::{make_empty_map, make_map_with_root_and_bitwidth};
+use super::{make_empty_map, make_map_with_root_and_bitwidth};
 use fvm_ipld_blockstore::{Blockstore, MemoryBlockstore};
 use fvm_ipld_hamt::Error as HamtError;
 use fvm_ipld_hamt::Hamt;
@@ -19,7 +20,7 @@ use super::{TCid, TCidContent};
 ///
 /// # Example
 /// ```
-/// use primitives::{TCid, THamt};
+/// use ipc_types::{TCid, THamt};
 /// use fvm_ipld_blockstore::MemoryBlockstore;
 /// use fvm_ipld_encoding::tuple::*;
 /// use fvm_ipld_encoding::Cbor;

@@ -323,7 +323,7 @@ mod tests {
     use crate::evm::subnet_id_to_evm_addresses;
     use crate::subnet_id::SubnetID;
     use fvm_shared::address::Address;
-    use primitives::EthAddress;
+    use ipc_types::EthAddress;
     use std::str::FromStr;
 
     #[test]

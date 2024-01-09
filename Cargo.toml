@@ -3,15 +3,11 @@ resolver = "2"
 members = [
   # contracts
   "contracts/binding",
-  # fvm-utils,
-  "fvm-utils/primitives",
-  # Runtime is no longer needed. `primitives` will be moved under `ipc`
-  # "fvm-utils/runtime",
-  # ipc
   "cli",
   "ipc/wallet",
   "ipc/provider",
   "ipc/api",
+  "ipc/types",
   # Tests seem to be obsolete (using IPC agent):
   # "ipc/ipc/testing/*",
   # resolver
@@ -142,7 +138,7 @@ ipc-api = { path = "ipc/api" }
 ipc-provider = { path = "ipc/provider" }
 ipc-wallet = { path = "ipc/wallet", features = ["with-ethers"] }
 ipc_ipld_resolver = { path = "ipld/resolver" }
-primitives = { path = "fvm-utils/primitives" }
+ipc-types = { path = "ipc/types" }
 ipc_actors_abis = { path = "contracts/binding" }
 
 # Vendored for cross-compilation, see https://github.com/cross-rs/cross/wiki/Recipes#openssl

@@ -43,4 +43,4 @@ zeroize = "1.6.0"
 ipc-wallet = { workspace = true }
 ipc-provider = { workspace = true }
 ipc-api = { workspace = true }
-primitives = { workspace = true }
+ipc-types = { workspace = true }

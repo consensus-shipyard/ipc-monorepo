@@ -5,7 +5,7 @@
 use async_trait::async_trait;
 use clap::Args;
 use fvm_shared::address::Address;
-use primitives::EthAddress;
+use ipc_types::EthAddress;
 use std::fmt::Debug;
 use std::str::FromStr;
 

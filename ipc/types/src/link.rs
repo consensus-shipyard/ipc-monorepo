@@ -1,5 +1,6 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
+use crate::actor_error;
 use std::any::type_name;
 use std::marker::PhantomData;
 
@@ -16,7 +17,7 @@ use std::ops::{Deref, DerefMut};
 ///
 /// # Example
 /// ```
-/// use primitives::{TCid, TLink};
+/// use ipc_types::{TCid, TLink};
 /// use fvm_ipld_blockstore::MemoryBlockstore;
 /// use fvm_ipld_encoding::tuple::*;
 /// use fvm_ipld_encoding::Cbor;

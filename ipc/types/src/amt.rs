@@ -1,5 +1,6 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
+use crate::actor_error;
 use std::any::type_name;
 use std::marker::PhantomData;
 
@@ -7,8 +8,8 @@ use crate::tcid_ops;
 
 use super::{TCid, TCidContent};
 use anyhow::{anyhow, Result};
-use fil_actors_runtime::fvm_ipld_amt::Amt;
-use fil_actors_runtime::fvm_ipld_amt::Error as AmtError;
+use fvm_ipld_amt::Amt;
+use fvm_ipld_amt::Error as AmtError;
 use fvm_ipld_blockstore::{Blockstore, MemoryBlockstore};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
@@ -20,7 +21,7 @@ const AMT_BIT_WIDTH: u32 = 3;
 ///
 /// # Example
 /// ```
-/// use primitives::{TCid, TAmt};
+/// use ipc_types::{TCid, TAmt};
 /// use fvm_ipld_blockstore::MemoryBlockstore;
 /// use fvm_ipld_encoding::tuple::*;
 /// use fvm_ipld_encoding::Cbor;

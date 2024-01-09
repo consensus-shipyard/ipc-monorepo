@@ -5,7 +5,7 @@
 use crate::config::Subnet;
 use fvm_shared::address::Address;
 use ipc_api::subnet_id::SubnetID;
-use primitives::EthAddress;
+use ipc_types::EthAddress;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;

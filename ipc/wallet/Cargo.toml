@@ -28,7 +28,7 @@ thiserror = { workspace = true }
 xsalsa20poly1305 = "0.9"
 zeroize = "1.6.0"
 
-primitives = { workspace = true }
+ipc-types = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

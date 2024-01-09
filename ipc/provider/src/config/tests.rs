@@ -5,7 +5,7 @@ use std::str::FromStr;
 use fvm_shared::address::Address;
 use indoc::formatdoc;
 use ipc_api::subnet_id::SubnetID;
-use primitives::EthAddress;
+use ipc_types::EthAddress;
 use url::Url;
 
 use crate::config::Config;

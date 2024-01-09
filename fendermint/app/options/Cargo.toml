@@ -21,7 +21,7 @@ cid = { workspace = true }
 fvm_ipld_encoding = { workspace = true }
 fvm_shared = { workspace = true }
 ipc-api = { workspace = true }
-primitives = { workspace = true }
+ipc-types = { workspace = true }
 url = { workspace = true }
 
 

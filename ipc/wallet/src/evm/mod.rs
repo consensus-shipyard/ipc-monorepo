@@ -108,7 +108,7 @@ impl TryFrom<EthKeyAddress> for fvm_shared::address::Address {
 
     fn try_from(value: EthKeyAddress) -> std::result::Result<Self, Self::Error> {
         Ok(fvm_shared::address::Address::from(
-            &primitives::EthAddress::from_str(&value.to_string())?,
+            &ipc_types::EthAddress::from_str(&value.to_string())?,
         ))
     }
 }

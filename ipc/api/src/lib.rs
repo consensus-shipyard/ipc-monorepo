@@ -1,7 +1,7 @@
 // Copyright 2022-2023 Protocol Labs
 // SPDX-License-Identifier: MIT
 use fvm_shared::{address::Address, econ::TokenAmount};
-use primitives::EthAddress;
+use ipc_types::EthAddress;
 use std::str::FromStr;
 
 pub mod address;

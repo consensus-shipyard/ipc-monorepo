@@ -4,18 +4,70 @@ use std::{fmt::Display, marker::PhantomData};
 
 use cid::{multihash::Code, Cid};
 
+pub use self::actor_error::*;
+
 mod amt;
 mod ethaddr;
 mod hamt;
 mod link;
 mod taddress;
 mod uints;
+pub mod actor_error;
 
 pub use amt::TAmt;
 pub use ethaddr::*;
+use fvm_ipld_amt::Amt;
+use fvm_ipld_blockstore::Blockstore;
+use fvm_ipld_hamt::{Hamt, BytesKey, Error as HamtError};
 pub use hamt::THamt;
 pub use link::TLink;
+use serde::{de::DeserializeOwned, Serialize};
 pub use taddress::*;
+
+pub const HAMT_BIT_WIDTH: u32 = 5;
+
+/// Map type to be used within actors. The underlying type is a HAMT.
+pub type Map<'bs, BS, V> = Hamt<&'bs BS, V, BytesKey>;
+
+/// Array type used within actors. The underlying type is an AMT.
+pub type Array<'bs, V, BS> = Amt<V, &'bs BS>;
+
+/// Create a hamt with a custom bitwidth.
+#[inline]
+pub fn make_empty_map<BS, V>(store: &'_ BS, bitwidth: u32) -> Map<'_, BS, V>
+where
+    BS: Blockstore,
+    V: DeserializeOwned + Serialize,
+{
+    Map::<_, V>::new_with_bit_width(store, bitwidth)
+}
+
+/// Create a map with a root cid.
+#[inline]
+pub fn make_map_with_root<'bs, BS, V>(
+    root: &Cid,
+    store: &'bs BS,
+) -> Result<Map<'bs, BS, V>, HamtError>
+where
+    BS: Blockstore,
+    V: DeserializeOwned + Serialize,
+{
+    Map::<_, V>::load_with_bit_width(root, store, HAMT_BIT_WIDTH)
+}
+
+/// Create a map with a root cid.
+#[inline]
+pub fn make_map_with_root_and_bitwidth<'bs, BS, V>(
+    root: &Cid,
+    store: &'bs BS,
+    bitwidth: u32,
+) -> Result<Map<'bs, BS, V>, HamtError>
+where
+    BS: Blockstore,
+    V: DeserializeOwned + Serialize,
+{
+    Map::<_, V>::load_with_bit_width(root, store, bitwidth)
+}
 
 /// Helper type to be able to define `Code` as a generic parameter.
 pub trait CodeType {
@@ -114,7 +166,7 @@ macro_rules! tcid_ops {
             pub fn load<'s, S: fvm_ipld_blockstore::Blockstore>(&self, store: &'s S) -> Result<$item> {
                 match self.maybe_load(store)? {
                     Some(content) => Ok(content),
-                    None => Err(fil_actors_runtime::actor_error!(
+                    None => Err(actor_error!(
                         illegal_state;
                         "error loading {}: Cid ({}) did not match any in database",
                         type_name::<Self>(),

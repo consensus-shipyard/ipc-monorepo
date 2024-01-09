@@ -96,7 +96,7 @@ pub fn parse_network(s: &str) -> Result<Network, String> {
 }
 
 pub fn parse_eth_address(s: &str) -> Result<Address, String> {
-    match primitives::EthAddress::from_str(s) {
+    match ipc_types::EthAddress::from_str(s) {
         Ok(a) => Ok(a.into()),
         Err(e) => Err(format!("not a valid ethereum address: {e}")),
     }
