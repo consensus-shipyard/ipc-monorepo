@@ -12,8 +12,8 @@ base64 = { workspace = true }
 byteorder = "1.4.3"
 castaway = "0.2.2"
 cid = { workspace = true, default-features = false, features = ["serde-codec"]}
-frc42_dispatch = "3.0.0"
-fvm_ipld_amt = { workspace = true, features = ["go-interop"]}
+frc42_dispatch = { workspace = true }
+fvm_ipld_amt = { workspace = true }
 fvm_ipld_hamt = { workspace = true }
 fvm_shared = { workspace = true }
 indexmap = {version = "1.8.0", features = ["serde-1"]}
@@ -34,7 +34,7 @@ fvm_sdk = { workspace = true, optional = true }
 getrandom = {version = "0.2.3", features = ["js"]}
 hex = { workspace = true, optional = true}
 itertools = "0.10"
-multihash = { workspace = true, default-features = false}
+multihash = { workspace = true }
 paste = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }

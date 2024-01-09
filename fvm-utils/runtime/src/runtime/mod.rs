@@ -1,3 +1,4 @@
+// Copyright 2022-2024 Protocol Labs
 // Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -117,10 +118,8 @@ pub trait Runtime: Primitives {
     /// May only be called by Init actor.
     fn create_actor(&mut self, code_id: Cid, address: ActorID) -> Result<(), ActorError>;
 
-    /// Deletes the executing actor from the state tree, transferring any balance to beneficiary.
-    /// Aborts if the beneficiary does not exist.
-    /// May only be called by the actor itself.
-    fn delete_actor(&mut self, beneficiary: &Address) -> Result<(), ActorError>;
+    /// Deletes the executing actor from the state tree, burning any remaining balance if requested.
+    fn delete_actor(&mut self, burn_unspent: bool) -> Result<(), ActorError>;
 
     /// Returns whether the specified CodeCID belongs to a built-in actor.
     fn resolve_builtin_actor_type(&self, code_id: &Cid) -> Option<Type>;

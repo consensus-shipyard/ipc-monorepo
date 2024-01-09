@@ -9,21 +9,11 @@ use fvm_shared::clock::ChainEpoch;
 pub struct FendermintExterns;
 
 impl Rand for FendermintExterns {
-    fn get_chain_randomness(
-        &self,
-        _pers: i64,
-        _round: ChainEpoch,
-        _entropy: &[u8],
-    ) -> anyhow::Result<[u8; 32]> {
+    fn get_chain_randomness(&self, _round: ChainEpoch) -> anyhow::Result<[u8; 32]> {
         todo!("might need randomness")
     }
 
-    fn get_beacon_randomness(
-        &self,
-        _pers: i64,
-        _round: ChainEpoch,
-        _entropy: &[u8],
-    ) -> anyhow::Result<[u8; 32]> {
+    fn get_beacon_randomness(&self, _round: ChainEpoch) -> anyhow::Result<[u8; 32]> {
         unimplemented!("not expecting to use the beacon")
     }
 }

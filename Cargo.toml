@@ -68,7 +68,7 @@ im = "15.1.0"
 jsonrpc-v2 = { version = "0.11", default-features = false, features = ["bytes-v10"] }
 k256 = "0.11" # Same as tendermint-rs
 lazy_static = "1.4"
-libipld = { version = "0.14", default-features = false, features = ["dag-cbor"] }
+libipld = { version = "0.16", default-features = false, features = ["dag-cbor"] }
 libp2p = { version = "0.50", default-features = false, features = [
   "gossipsub",
   "kad",
@@ -87,11 +87,11 @@ libp2p = { version = "0.50", default-features = false, features = [
   "secp256k1",
   "plaintext",
 ] }
-libp2p-bitswap = "0.25.1"
+libp2p-bitswap = { git = "https://github.com/fridrik01/libp2p-bitswap.git", branch = "upgrade-fvm" }
 lru_time_cache = "0.11"
 merkle-tree-rs = "0.1.0"
 multiaddr = "0.16"
-multihash = { version = "0.16.1", default-features = false }
+multihash = "0.18.1"
 num-bigint = "0.4"
 num-derive = "0.3"
 num-traits = "0.2"
@@ -152,15 +152,15 @@ openssl = { version = "0.10", features = ["vendored"] }
 # Using the 3.3 version of the FVM because the newer ones update the IPLD dependencies
 # to version which are different than the ones in the builtin-actors project, and since
 # they are 0.x cargo cannot upgrade them automatically, which leads to version conflicts.
-fvm = { version = "~3.2", default-features = false }                     # no opencl feature or it fails on CI
-fvm_shared = { version = "~3.2", features = ["crypto"] }
-fvm_sdk = { version = "~3.2" }
+fvm = { version = "4.0.0", default-features = false }                     # no opencl feature or it fails on CI
+fvm_shared = { version = "4.0.0", features = ["crypto"] }
+fvm_sdk = { version = "4.0.0" }
 
-fvm_ipld_blockstore = "0.1"
-fvm_ipld_car = "0.6"
-fvm_ipld_encoding = "0.3"
-fvm_ipld_hamt = "0.6.0"
-fvm_ipld_amt = "0.4.2"
+fvm_ipld_blockstore = "0.2.0"
+fvm_ipld_car = "0.7.1"
+fvm_ipld_encoding = "0.4.0"
+fvm_ipld_hamt = "0.9.0"
+fvm_ipld_amt = "0.6.2"
 
 # Local FVM debugging
 # fvm = { path = "../ref-fvm/fvm", default-features = false }
@@ -174,17 +174,17 @@ fvm_ipld_amt = "0.4.2"
 # to cut down the time it takes to compile everything. However, some projects have a "shared" part,
 # and this copy-paste is clunky, so at least for those that have it, we should use it.
 # Keep the version here in sync with the Makefile!
-fil_actors_evm_shared = { git = "https://github.com/filecoin-project/builtin-actors", tag = "v11.0.0" }
-fil_actors_runtime = { git = "https://github.com/filecoin-project/builtin-actors", tag = "v11.0.0" }
+fil_actors_evm_shared = { git = "https://github.com/filecoin-project/builtin-actors", tag = "v12.0.0" }
+fil_actors_runtime = { git = "https://github.com/filecoin-project/builtin-actors", tag = "v12.0.0" }
 
 # Using 0.8 because of ref-fvm.
 # 0.9 would be better because of its updated quickcheck dependency.
 # 0.10 breaks some API.
-cid = { version = "0.8", default-features = false, features = ["serde-codec", "std"] }
+cid = { version = "0.10.1", default-features = false, features = ["serde-codec", "std"] }
 
 # Depending on the release cycle, this dependency might want an earlier version of the FVM.
 # We can work around it by hardcoding the method hashes; currently there is only one.
-# frc42_dispatch = "3.2"
+frc42_dispatch = "5.0.0"
 
 # Using the same tendermint-rs dependency as tower-abci. From both we are interested in v037 modules.
 tower-abci = { version = "0.7" }

@@ -302,13 +302,13 @@ where
         })
     }
 
-    fn delete_actor(&mut self, beneficiary: &Address) -> Result<(), ActorError> {
+    fn delete_actor(&mut self, burn_unspent: bool) -> Result<(), ActorError> {
         if self.in_transaction {
             return Err(
                 actor_error!(assertion_failed; "delete_actor is not allowed during transaction"),
             );
         }
-        Ok(fvm::sself::self_destruct(beneficiary)?)
+        Ok(fvm::sself::self_destruct(burn_unspent)?)
     }
 
     fn resolve_builtin_actor_type(&self, code_id: &Cid) -> Option<Type> {
