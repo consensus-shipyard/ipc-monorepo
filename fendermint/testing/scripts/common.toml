@@ -11,10 +11,10 @@
 # cargo make teardown
 
 extend = [
-  { path = "../../../infra/scripts/docker.toml" },
-  { path = "../../../infra/scripts/cometbft.toml" },
-  { path = "../../../infra/scripts/ethapi.toml" },
-  { path = "../../../infra/scripts/fendermint.toml" },
+  { path = "../../../infra/fendermint/scripts/docker.toml" },
+  { path = "../../../infra/fendermint/scripts/cometbft.toml" },
+  { path = "../../../infra/fendermint/scripts/ethapi.toml" },
+  { path = "../../../infra/fendermint/scripts/fendermint.toml" },
   { path = "./fendermint.toml" },
 ]
 
