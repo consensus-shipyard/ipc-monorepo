@@ -8,7 +8,7 @@ import {LibQuorum} from "../../lib/LibQuorum.sol";
 import {Subnet} from "../../structs/Subnet.sol";
 import {QuorumObjKind} from "../../structs/Quorum.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
-import {ISubnetActor} from "../../interfaces/ISubnetActor.sol";
+import {IRelayerRewardDistributor} from "../../interfaces/ISubnetActor.sol";
 
 import {InvalidBatchSource, NotEnoughBalance, MaxMsgsPerBatchExceeded, BatchWithNoMessages, InvalidCheckpointSource, InvalidCrossMsgNonce, InvalidCrossMsgDstSubnet, CheckpointAlreadyExists} from "../../errors/IPCErrors.sol";
 import {NotRegisteredSubnet, SubnetNotActive, SubnetNotFound, InvalidSubnet, CheckpointNotCreated} from "../../errors/IPCErrors.sol";
@@ -42,7 +42,7 @@ contract CheckpointingFacet is GatewayActorModifiers {
             Address.functionCallWithValue({
                 target: msg.sender,
                 data: abi.encodeCall(
-                    ISubnetActor.distributeRewardToRelayers,
+                    IRelayerRewardDistributor.distributeRewardToRelayers,
                     (checkpoint.blockHeight, 0, QuorumObjKind.Checkpoint)
                 ),
                 value: 0

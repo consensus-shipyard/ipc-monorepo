@@ -10,7 +10,7 @@ use ipc_sdk::subnet_id::SubnetID;
 use super::subnet::SubnetManager;
 pub use manager::EthSubnetManager;
 
-use ipc_actors_abis::subnet_actor_manager_facet;
+use ipc_actors_abis::subnet_actor_checkpointing_facet;
 
 #[async_trait]
 pub trait EthManager: SubnetManager {
@@ -21,7 +21,7 @@ pub trait EthManager: SubnetManager {
     async fn bottom_up_checkpoint(
         &self,
         epoch: ChainEpoch,
-    ) -> anyhow::Result<subnet_actor_manager_facet::BottomUpCheckpoint>;
+    ) -> anyhow::Result<subnet_actor_checkpointing_facet::BottomUpCheckpoint>;
 
     /// Get the latest applied top down nonce
     async fn get_applied_top_down_nonce(&self, subnet_id: &SubnetID) -> anyhow::Result<u64>;

@@ -21,8 +21,8 @@ use fvm_shared::econ::TokenAmount;
 use fvm_shared::MethodNum;
 use ipc_actors_abis::{
     bottom_up_router_facet, gateway_getter_facet, gateway_manager_facet, gateway_messenger_facet,
-    lib_gateway, register_subnet_facet, subnet_actor_diamond, subnet_actor_getter_facet,
-    subnet_actor_manager_facet, top_down_finality_facet, xnet_messaging_facet,
+    lib_gateway, register_subnet_facet, subnet_actor_checkpointing_facet, subnet_actor_diamond,
+    subnet_actor_getter_facet, top_down_finality_facet, xnet_messaging_facet,
 };
 
 /// The type conversion for IPC structs to evm solidity contracts. We need this convenient macro because
@@ -206,7 +206,7 @@ base_type_conversion!(bottom_up_router_facet);
 base_type_conversion!(xnet_messaging_facet);
 base_type_conversion!(subnet_actor_getter_facet);
 base_type_conversion!(gateway_manager_facet);
-base_type_conversion!(subnet_actor_manager_facet);
+base_type_conversion!(subnet_actor_checkpointing_facet);
 base_type_conversion!(gateway_getter_facet);
 base_type_conversion!(gateway_messenger_facet);
 base_type_conversion!(lib_gateway);
@@ -215,11 +215,11 @@ cross_msg_types!(gateway_getter_facet);
 cross_msg_types!(bottom_up_router_facet);
 cross_msg_types!(xnet_messaging_facet);
 cross_msg_types!(gateway_messenger_facet);
-cross_msg_types!(subnet_actor_manager_facet);
+cross_msg_types!(subnet_actor_checkpointing_facet);
 cross_msg_types!(lib_gateway);
 
 bottom_up_type_conversion!(gateway_getter_facet);
-bottom_up_type_conversion!(subnet_actor_manager_facet);
+bottom_up_type_conversion!(subnet_actor_checkpointing_facet);
 
 impl TryFrom<SupplySource> for subnet_actor_diamond::SupplySource {
     type Error = anyhow::Error;

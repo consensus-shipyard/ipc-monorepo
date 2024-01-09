@@ -6,7 +6,7 @@ import "forge-std/StdCheats.sol";
 import {CommonBase} from "forge-std/Base.sol";
 import {SubnetActorDiamond} from "../../../src/SubnetActorDiamond.sol";
 import {SubnetActorGetterFacet} from "../../../src/subnet/SubnetActorGetterFacet.sol";
-import {SubnetActorManagerFacetMock} from "../../mocks/SubnetActorManagerFacetMock.sol";
+import {SubnetActorMock} from "../../mocks/SubnetActorMock.sol";
 import {TestUtils} from "../../helpers/TestUtils.sol";
 import {EnumerableSet} from "openzeppelin-contracts/utils/structs/EnumerableSet.sol";
 
@@ -15,7 +15,7 @@ uint256 constant ETH_SUPPLY = 129_590_000 ether;
 contract SubnetActorHandler is CommonBase, StdCheats, StdUtils {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    SubnetActorManagerFacetMock private managerFacet;
+    SubnetActorMock private managerFacet;
     SubnetActorGetterFacet private getterFacet;
 
     uint256 private constant DEFAULT_MIN_VALIDATOR_STAKE = 10 ether;
@@ -32,7 +32,7 @@ contract SubnetActorHandler is CommonBase, StdCheats, StdUtils {
     uint256 public ghost_unstakedSum;
 
     constructor(SubnetActorDiamond _subnetActor) {
-        managerFacet = SubnetActorManagerFacetMock(address(_subnetActor));
+        managerFacet = SubnetActorMock(address(_subnetActor));
         getterFacet = SubnetActorGetterFacet(address(_subnetActor));
 
         deal(address(this), ETH_SUPPLY);

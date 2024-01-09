@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.19;
 
-import {ISubnetActor} from "../../interfaces/ISubnetActor.sol";
+import {IRelayerRewardDistributor} from "../../interfaces/ISubnetActor.sol";
 import {GatewayActorModifiers} from "../../lib/LibGatewayActorStorage.sol";
 import {BottomUpMsgBatch} from "../../structs/CrossNet.sol";
 import {LibGateway} from "../../lib/LibGateway.sol";
@@ -73,7 +73,7 @@ contract BottomUpRouterFacet is GatewayActorModifiers {
             Address.functionCallWithValue({
                 target: msg.sender,
                 data: abi.encodeCall(
-                    ISubnetActor.distributeRewardToRelayers,
+                    IRelayerRewardDistributor.distributeRewardToRelayers,
                     (block.number, totalFee, QuorumObjKind.Checkpoint)
                 ),
                 value: totalFee

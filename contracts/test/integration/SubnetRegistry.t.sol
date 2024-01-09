@@ -14,6 +14,9 @@ import {LibDiamond} from "../../src/lib/LibDiamond.sol";
 
 import {SubnetActorGetterFacet} from "../../src/subnet/SubnetActorGetterFacet.sol";
 import {SubnetActorManagerFacet} from "../../src/subnet/SubnetActorManagerFacet.sol";
+import {SubnetActorPauseFacet} from "../../src/subnet/SubnetActorPauseFacet.sol";
+import {SubnetActorCheckpointingFacet} from "../../src/subnet/SubnetActorCheckpointingFacet.sol";
+import {SubnetActorRewardFacet} from "../../src/subnet/SubnetActorRewardFacet.sol";
 import {SubnetActorDiamond} from "../../src/SubnetActorDiamond.sol";
 import {SubnetID, PermissionMode} from "../../src/structs/Subnet.sol";
 import {SubnetRegistryDiamond} from "../../src/SubnetRegistryDiamond.sol";

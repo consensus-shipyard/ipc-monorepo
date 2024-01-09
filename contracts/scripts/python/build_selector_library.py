@@ -81,6 +81,9 @@ def main():
          'src/gateway/router/XnetMessagingFacet.sol',
          'src/subnet/SubnetActorGetterFacet.sol',
          'src/subnet/SubnetActorManagerFacet.sol',
+         'src/subnet/SubnetActorPauseFacet.sol',
+         'src/subnet/SubnetActorRewardFacet.sol',
+         'src/subnet/SubnetActorCheckpointingFacet.sol',
          'src/subnetregistry/RegisterSubnetFacet.sol',
          'src/subnetregistry/SubnetGetterFacet.sol',
          'test/helpers/ERC20PresetFixedSupply.sol',
@@ -88,7 +91,7 @@ def main():
          'test/helpers/NumberContractFacetSeven.sol',
          'test/helpers/SelectorLibrary.sol',
          'test/helpers/TestUtils.sol',
-         'test/mocks/SubnetActorManagerFacetMock.sol',
+         'test/mocks/SubnetActorMock.sol',
      ]
 
     for filepath in filepaths_to_target:

@@ -24,11 +24,17 @@ pub mod xnet_messaging_facet;
 #[allow(clippy::all)]
 pub mod gateway_messenger_facet;
 #[allow(clippy::all)]
+pub mod subnet_actor_checkpointing_facet;
+#[allow(clippy::all)]
 pub mod subnet_actor_diamond;
 #[allow(clippy::all)]
 pub mod subnet_actor_getter_facet;
 #[allow(clippy::all)]
 pub mod subnet_actor_manager_facet;
+#[allow(clippy::all)]
+pub mod subnet_actor_pause_facet;
+#[allow(clippy::all)]
+pub mod subnet_actor_reward_facet;
 #[allow(clippy::all)]
 pub mod subnet_registry_diamond;
 #[allow(clippy::all)]
@@ -50,11 +56,11 @@ fvm_address_conversion!(gateway_getter_facet);
 fvm_address_conversion!(bottom_up_router_facet);
 fvm_address_conversion!(xnet_messaging_facet);
 fvm_address_conversion!(gateway_messenger_facet);
-fvm_address_conversion!(subnet_actor_manager_facet);
+fvm_address_conversion!(subnet_actor_checkpointing_facet);
+fvm_address_conversion!(subnet_actor_getter_facet);
 fvm_address_conversion!(lib_gateway);
 
 // The list of contracts that need to convert common types between each other
-common_type_conversion!(gateway_getter_facet, subnet_actor_manager_facet);
 common_type_conversion!(subnet_actor_getter_facet, bottom_up_router_facet);
 common_type_conversion!(subnet_actor_getter_facet, checkpointing_facet);
 common_type_conversion!(subnet_actor_getter_facet, xnet_messaging_facet);

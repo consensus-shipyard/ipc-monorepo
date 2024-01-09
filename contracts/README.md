@@ -49,6 +49,48 @@ To deploy the contracts in some other network configured in the Hardhat config y
 make deploy-ipc NETWORK=<network-name>
 ```
 
+# Upgrading IPC Solidity Contracts
+
+This repository's contracts use the Diamond pattern for upgradability, allowing new features to be added or issues to be corrected without a full redeployment. The upgrade process is automated and includes bytecode verification to ensure the integrity of the changes.
+
+## Automated Upgrade and Bytecode Verification
+
+When you run an upgrade command, the repository's scripts handle several tasks:
+
+1. **Bytecode Verification**: The scripts fetch the bytecode of the currently deployed contracts on an FEVM-powered IPC network using the details stored in local JSON files in the root directory of the git repository. They compare this with the bytecode generated after applying the intended changes on a temporary Ganache network.
+
+2. **Conditional Upgrades**: If the bytecode verification process detects changes that align with the intended upgrades, the `make` command conditionally triggers other scripts to perform the actual upgrade on the network.
+
+## Upgrade Commands
+
+To upgrade a contract, you may use the following commands. The NETWORK parameter is optional; if not specified, the scripts will default to "auto":
+
+-   **Gateway Diamond Upgrade**:
+
+    ```bash
+    make upgrade-gw-diamond [NETWORK=<network-name>]
+    ```
+
+-   **Subnet Actor Diamond Upgrade**:
+
+    ```bash
+    make upgrade-sa-diamond [NETWORK=<network-name>]
+    ```
+
+-   **Subnet Registry Diamond Upgrade**:
+    ```bash
+    make upgrade-sr-diamond [NETWORK=<network-name>]
+    ```
+
+After running any of these commands, the scripts will provide transaction details for verification. Check the transaction on the appropriate block explorer to confirm the upgrade's success.
+
+## Important Notes
+
+-   The upgrade commands are intended for use by authorized personnel with a deep understanding of the contracts' functionality.
+-   Ensure that your local repository is up to date with the latest contract code and JSON files before initiating an upgrade.
+-   Backup all contract data and thoroughly test any new code in a controlled environment prior to an upgrade.
+-   Monitor the output of the upgrade process carefully for transaction details and to verify its successful completion.
+
 ## Branching Strategy
 
 ### Production branch

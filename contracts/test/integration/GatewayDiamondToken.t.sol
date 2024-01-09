@@ -4,33 +4,20 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 
 import "../../src/errors/IPCErrors.sol";
-import {NumberContractFacetSeven} from "../helpers/NumberContractFacetSeven.sol";
-import {NumberContractFacetEight} from "../helpers/NumberContractFacetEight.sol";
 import {EMPTY_BYTES, METHOD_SEND, EMPTY_HASH} from "../../src/constants/Constants.sol";
-import {IERC165} from "../../src/interfaces/IERC165.sol";
-import {IDiamond} from "../../src/interfaces/IDiamond.sol";
-import {IDiamondLoupe} from "../../src/interfaces/IDiamondLoupe.sol";
-import {IDiamondCut} from "../../src/interfaces/IDiamondCut.sol";
-import {CrossMsg, BottomUpMsgBatch, BottomUpCheckpoint, StorableMsg, ParentFinality} from "../../src/structs/CrossNet.sol";
+import {CrossMsg, BottomUpMsgBatch, StorableMsg} from "../../src/structs/CrossNet.sol";
 import {FvmAddress} from "../../src/structs/FvmAddress.sol";
-import {SubnetID, Subnet, SupplySource, SupplyKind, IPCAddress, Membership, Validator, StakingChange, StakingChangeRequest, StakingOperation} from "../../src/structs/Subnet.sol";
+import {SubnetID, Subnet, SupplySource, SupplyKind, Validator} from "../../src/structs/Subnet.sol";
 import {SubnetIDHelper} from "../../src/lib/SubnetIDHelper.sol";
 import {FvmAddressHelper} from "../../src/lib/FvmAddressHelper.sol";
 import {CrossMsgHelper} from "../../src/lib/CrossMsgHelper.sol";
 import {SupplySourceHelper} from "../../src/lib/SupplySourceHelper.sol";
 import {StorableMsgHelper} from "../../src/lib/StorableMsgHelper.sol";
 import {FilAddress} from "fevmate/utils/FilAddress.sol";
-import {GatewayDiamond, FunctionNotFound} from "../../src/GatewayDiamond.sol";
-import {SubnetActorDiamond} from "../../src/SubnetActorDiamond.sol";
-import {GatewayGetterFacet} from "../../src/gateway/GatewayGetterFacet.sol";
-import {GatewayManagerFacet} from "../../src/gateway/GatewayManagerFacet.sol";
-import {DiamondCutFacet} from "../../src/diamond/DiamondCutFacet.sol";
-import {LibDiamond} from "../../src/lib/LibDiamond.sol";
+import {GatewayDiamond} from "../../src/GatewayDiamond.sol";
 import {LibGateway} from "../../src/lib/LibGateway.sol";
-import {MerkleTreeHelper} from "../helpers/MerkleTreeHelper.sol";
 import {TestUtils} from "../helpers/TestUtils.sol";
 import {IntegrationTestBase} from "../IntegrationTestBase.sol";
-
 import {SubnetActorDiamond} from "../../src/SubnetActorDiamond.sol";
 import {GatewayGetterFacet} from "../../src/gateway/GatewayGetterFacet.sol";
 import {GatewayMessengerFacet} from "../../src/gateway/GatewayMessengerFacet.sol";
@@ -39,7 +26,6 @@ import {SubnetActorManagerFacet} from "../../src/subnet/SubnetActorManagerFacet.
 import {SubnetActorGetterFacet} from "../../src/subnet/SubnetActorGetterFacet.sol";
 import {DiamondLoupeFacet} from "../../src/diamond/DiamondLoupeFacet.sol";
 import {DiamondCutFacet} from "../../src/diamond/DiamondCutFacet.sol";
-import {LibDiamond} from "../../src/lib/LibDiamond.sol";
 
 import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
 import {ERC20PresetFixedSupply} from "../helpers/ERC20PresetFixedSupply.sol";

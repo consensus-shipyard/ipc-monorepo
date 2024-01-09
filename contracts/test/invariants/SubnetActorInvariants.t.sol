@@ -10,7 +10,7 @@ import {GatewayGetterFacet} from "../../src/gateway/GatewayGetterFacet.sol";
 import {GatewayMessengerFacet} from "../../src/gateway/GatewayMessengerFacet.sol";
 import {GatewayManagerFacet} from "../../src/gateway/GatewayManagerFacet.sol";
 import {SubnetActorHandler, ETH_SUPPLY} from "./handlers/SubnetActorHandler.sol";
-import {SubnetActorManagerFacetMock} from "../mocks/SubnetActorManagerFacetMock.sol";
+import {SubnetActorMock} from "../mocks/SubnetActorMock.sol";
 import {SubnetActorGetterFacet} from "../../src/subnet/SubnetActorGetterFacet.sol";
 import {IntegrationTestBase} from "../IntegrationTestBase.sol";
 import {SupplySourceHelper} from "../../src/lib/SupplySourceHelper.sol";
@@ -34,7 +34,7 @@ contract SubnetActorInvariants is StdInvariant, IntegrationTestBase {
 
         saDiamond = createMockedSubnetActorWithGateway(gatewayAddress);
 
-        saMockedManager = SubnetActorManagerFacetMock(address(saDiamond));
+        saMock = SubnetActorMock(address(saDiamond));
         saGetter = SubnetActorGetterFacet(address(saDiamond));
         subnetActorHandler = new SubnetActorHandler(saDiamond);
 
@@ -120,8 +120,8 @@ contract SubnetActorInvariants is StdInvariant, IntegrationTestBase {
         uint256 balanceBefore = validator.balance;
 
         vm.prank(validator);
-        saMockedManager.claim();
-        saMockedManager.confirmNextChange();
+        saMock.claim();
+        saMock.confirmNextChange();
 
         uint256 balanceAfter = validator.balance;
         uint256 subnetBalanceAfter = address(saDiamond).balance;

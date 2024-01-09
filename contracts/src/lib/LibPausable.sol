@@ -16,7 +16,7 @@ abstract contract Pausable {
     event Paused(address account);
 
     /**
-     * @dev Emitted when the pause is lifted by `account`.
+     * @dev Emitted when the unpause is triggered by `account`.
      */
     event Unpaused(address account);
 
@@ -43,10 +43,22 @@ abstract contract Pausable {
     }
 
     /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    modifier whenPaused() {
+        _requirePaused();
+        _;
+    }
+
+    /**
      * @dev Throws if the contract is paused.
      */
-    function _requireNotPaused() internal view virtual {
-        if (paused()) {
+    function _requireNotPaused() internal view {
+        if (_paused()) {
             revert EnforcedPause();
         }
     }
@@ -54,14 +66,14 @@ abstract contract Pausable {
     /**
      * @dev Throws if the contract is not paused.
      */
-    function _requirePaused() internal view virtual {
-        if (!paused()) {
+    function _requirePaused() internal view {
+        if (!_paused()) {
             revert ExpectedPause();
         }
     }
 
-    /// @notice sets if to pause the contract
-    function paused() public view returns(bool) {
+    /// @notice returns true if the contract is paused
+    function _paused() internal view returns(bool) {
         PausableStorage storage s = pausableStorage();
         return s.paused;
     }
@@ -73,10 +85,11 @@ abstract contract Pausable {
      *
      * - The contract must not be paused.
      */
-    function _pause() internal whenNotPaused {
+    function _pause() internal {
+        _requireNotPaused();
         PausableStorage storage s = pausableStorage();
         s.paused = true;
-        emit Unpaused(msg.sender);
+        emit Paused(msg.sender);
     }
 
     /**
@@ -86,7 +99,7 @@ abstract contract Pausable {
      *
      * - The contract must be paused.
      */
-    function _unpause() internal {
+    function _unpause() internal  {
         _requirePaused();
         PausableStorage storage s = pausableStorage();
         s.paused = false;

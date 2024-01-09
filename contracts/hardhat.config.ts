@@ -1,14 +1,12 @@
-import { HardhatUserConfig, task } from 'hardhat/config'
-import '@typechain/hardhat'
-import 'hardhat-storage-layout-changes'
-
 import '@nomicfoundation/hardhat-foundry'
 import '@nomiclabs/hardhat-ethers'
-import 'hardhat-deploy'
-import 'hardhat-contract-sizer'
-
+import '@typechain/hardhat'
 import dotenv from 'dotenv'
 import fs from 'fs'
+import 'hardhat-contract-sizer'
+import 'hardhat-deploy'
+import 'hardhat-storage-layout-changes'
+import { HardhatUserConfig, task } from 'hardhat/config'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 
 dotenv.config()
@@ -190,27 +188,6 @@ task(
         console.log(JSON.stringify(subnetRegistryDeployment, null, 2))
 
         await saveSubnetRegistry(network, subnetRegistryDeployment)
-    },
-)
-
-task(
-    'deploy-subnet',
-    'Builds and deploys the SubnetActor contract on the selected network',
-    async (args, hre: HardhatRuntimeEnvironment) => {
-        const network = hre.network.name
-
-        const deployments = await getDeployments(network)
-        const { deploy } = await lazyImport('./scripts/deploy-subnet')
-
-        // remove unused lib
-        delete deployments.libs['StorableMsgHelper']
-
-        const subnetDeployment = await deploy(
-            deployments.Gateway,
-            deployments.libs,
-        )
-
-        await saveDeployments(network, subnetDeployment)
     },
 )
 

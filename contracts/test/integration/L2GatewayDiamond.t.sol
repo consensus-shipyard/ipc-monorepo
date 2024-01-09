@@ -19,44 +19,12 @@ import {GatewayMessengerFacet} from "../../src/gateway/GatewayMessengerFacet.sol
 import {DiamondLoupeFacet} from "../../src/diamond/DiamondLoupeFacet.sol";
 import {DiamondCutFacet} from "../../src/diamond/DiamondCutFacet.sol";
 import {IntegrationTestBase} from "../IntegrationTestBase.sol";
+import {L2GatewayActorDiamond} from "../IntegrationTestPresets.sol";
 import {FilAddress} from "fevmate/utils/FilAddress.sol";
 
-contract GatewayL2ActorDiamondTest is Test, IntegrationTestBase {
+contract L2GatewayActorDiamondTest is Test, L2GatewayActorDiamond {
     using SubnetIDHelper for SubnetID;
     using CrossMsgHelper for CrossMsg;
-
-    function setUp() public override {
-        address[] memory path2 = new address[](2);
-        path2[0] = CHILD_NETWORK_ADDRESS;
-        path2[1] = CHILD_NETWORK_ADDRESS_2;
-
-        GatewayDiamond.ConstructorParams memory gwConstructorParams = defaultGatewayParams();
-        gatewayDiamond = createGatewayDiamond(gwConstructorParams);
-
-        gwGetter = GatewayGetterFacet(address(gatewayDiamond));
-        gwManager = GatewayManagerFacet(address(gatewayDiamond));
-        gwXnetMessagingFacet = XnetMessagingFacet(address(gatewayDiamond));
-        gwMessenger = GatewayMessengerFacet(address(gatewayDiamond));
-        gwLouper = DiamondLoupeFacet(address(gatewayDiamond));
-        gwCutter = DiamondCutFacet(address(gatewayDiamond));
-    }
-
-    function defaultGatewayParams() internal pure override returns (GatewayDiamond.ConstructorParams memory) {
-        address[] memory path2 = new address[](2);
-        path2[0] = CHILD_NETWORK_ADDRESS;
-        path2[1] = CHILD_NETWORK_ADDRESS_2;
-
-        GatewayDiamond.ConstructorParams memory params = GatewayDiamond.ConstructorParams({
-            networkName: SubnetID({root: ROOTNET_CHAINID, route: path2}),
-            bottomUpCheckPeriod: DEFAULT_CHECKPOINT_PERIOD,
-            msgFee: DEFAULT_CROSS_MSG_FEE,
-            majorityPercentage: DEFAULT_MAJORITY_PERCENTAGE,
-            genesisValidators: new Validator[](0),
-            activeValidatorsLimit: DEFAULT_ACTIVE_VALIDATORS_LIMIT
-        });
-
-        return params;
-    }
 
     function testGatewayDiamond_CommitParentFinality_BigNumberOfMessages() public {
         uint256 n = 2000;

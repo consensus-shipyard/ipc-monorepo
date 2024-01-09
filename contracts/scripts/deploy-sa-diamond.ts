@@ -1,5 +1,5 @@
-import hre, { ethers } from 'hardhat'
 import { deployContractWithDeployer, getTransactionFees } from './util'
+import hre, { ethers } from 'hardhat'
 
 const { getSelectors, FacetCutAction } = require('./js/diamond.js')
 
@@ -26,15 +26,22 @@ async function deploySubnetActorDiamond(
         SubnetIDHelper: libs['SubnetIDHelper'],
     }
 
-    const managerFacetLibs: Libraries = {
-        LibStaking: libs['LibStaking'],
-    }
+    const managerFacetLibs: Libraries = {}
+
+    const rewarderFacetLibs: Libraries = {}
+
+    const pauserFacetLibs: Libraries = {}
+
+    const checkpointerFacetLibs: Libraries = {}
 
     const facets = [
         { name: 'DiamondLoupeFacet', libs: {} },
         { name: 'DiamondCutFacet', libs: {} },
         { name: 'SubnetActorGetterFacet', libs: getterFacetLibs },
         { name: 'SubnetActorManagerFacet', libs: managerFacetLibs },
+        { name: 'SubnetActorRewardFacet', libs: rewarderFacetLibs },
+        { name: 'SubnetActorCheckpointingFacet', libs: checkpointerFacetLibs },
+        { name: 'SubnetActorPauseFacet', libs: pauserFacetLibs },
     ]
     // The `facetCuts` variable is the FacetCut[] that contains the functions to add during diamond deployment
     const facetCuts = []

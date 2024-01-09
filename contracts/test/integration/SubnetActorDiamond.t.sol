@@ -26,6 +26,9 @@ import {SubnetActorDiamond, FunctionNotFound} from "../../src/SubnetActorDiamond
 import {FEATURE_CHECKPOINT_RELAYER_REWARDS} from "../../src/GatewayDiamond.sol";
 import {SubnetActorManagerFacet} from "../../src/subnet/SubnetActorManagerFacet.sol";
 import {SubnetActorGetterFacet} from "../../src/subnet/SubnetActorGetterFacet.sol";
+import {SubnetActorPauseFacet} from "../../src/subnet/SubnetActorPauseFacet.sol";
+import {SubnetActorCheckpointingFacet} from "../../src/subnet/SubnetActorCheckpointingFacet.sol";
+import {SubnetActorRewardFacet} from "../../src/subnet/SubnetActorRewardFacet.sol";
 import {DiamondCutFacet} from "../../src/diamond/DiamondCutFacet.sol";
 import {FilAddress} from "fevmate/utils/FilAddress.sol";
 import {LibStaking} from "../../src/lib/LibStaking.sol";
@@ -68,7 +71,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
     }
 
     function testSubnetActorDiamondReal_LoupeFunction() public view {
-        require(saLouper.facets().length == 4, "unexpected length");
+        require(saLouper.facets().length == 7, "unexpected length");
         require(saLouper.supportsInterface(type(IERC165).interfaceId) == true, "IERC165 not supported");
         require(saLouper.supportsInterface(type(IDiamondCut).interfaceId) == true, "IDiamondCut not supported");
         require(saLouper.supportsInterface(type(IDiamondLoupe).interfaceId) == true, "IDiamondLoupe not supported");
@@ -263,7 +266,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         // ======== Step. Claim collateral ======
         uint256 b1 = validator1.balance;
         vm.prank(validator1);
-        saManager.claim();
+        saRewarder.claim();
         uint256 b2 = validator1.balance;
         require(b2 - b1 == validator1Stake + stake, "collateral not received");
     }
@@ -298,8 +301,11 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
 
     function testSubnetActorDiamond_Deployments_Fail_GatewayCannotBeZero() public {
         SubnetActorManagerFacet saDupMangerFaucet = new SubnetActorManagerFacet();
-
         SubnetActorGetterFacet saDupGetterFaucet = new SubnetActorGetterFacet();
+        SubnetActorPauseFacet saDupPauserFaucet = new SubnetActorPauseFacet();
+        SubnetActorRewardFacet saDupRewardFaucet = new SubnetActorRewardFacet();
+        SubnetActorCheckpointingFacet saDupCheckpointerFaucet = new SubnetActorCheckpointingFacet();
+
         SupplySource memory native = SupplySourceHelper.native();
 
         vm.expectRevert(GatewayCannotBeZero.selector);
@@ -319,7 +325,10 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
                 supplySource: native
             }),
             address(saDupGetterFaucet),
-            address(saDupMangerFaucet)
+            address(saDupMangerFaucet),
+            address(saDupPauserFaucet),
+            address(saDupRewardFaucet),
+            address(saDupCheckpointerFaucet)
         );
     }
 
@@ -492,7 +501,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
             saManager.join{value: 10}(pubKeys[i]);
         }
 
-        saManager.validateActiveQuorumSignatures(validators, hash, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(validators, hash, signatures);
     }
 
     function testSubnetActorDiamond_validateActiveQuorumSignatures_InvalidWeightSum() public {
@@ -522,7 +531,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
                 MultisignatureChecker.Error.WeightsSumLessThanThreshold
             )
         );
-        saManager.validateActiveQuorumSignatures(subValidators, hash, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(subValidators, hash, signatures);
     }
 
     function testSubnetActorDiamond_validateActiveQuorumSignatures_InvalidSignature() public {
@@ -549,7 +558,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidSignatureErr.selector, MultisignatureChecker.Error.InvalidSignature)
         );
-        saManager.validateActiveQuorumSignatures(validators, hash, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(validators, hash, signatures);
     }
 
     function testSubnetActorDiamond_validateActiveQuorumSignatures_EmptySignatures() public {
@@ -570,7 +579,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidSignatureErr.selector, MultisignatureChecker.Error.EmptySignatures)
         );
-        saManager.validateActiveQuorumSignatures(validators, hash, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(validators, hash, signatures);
     }
 
     function testSubnetActorDiamond_validateActiveQuorumSignatures_InvalidArrayLength() public {
@@ -591,7 +600,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidSignatureErr.selector, MultisignatureChecker.Error.InvalidArrayLength)
         );
-        saManager.validateActiveQuorumSignatures(validators, hash, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(validators, hash, signatures);
     }
 
     function testSubnetActorDiamond_validateActiveQuorumSignatures_InvalidSignatory() public {
@@ -623,7 +632,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidSignatureErr.selector, MultisignatureChecker.Error.InvalidSignatory)
         );
-        saManager.validateActiveQuorumSignatures(validators, hash0, signatures);
+        saCheckpointer.validateActiveQuorumSignatures(validators, hash0, signatures);
     }
 
     function testSubnetActorDiamond_submitCheckpoint_basic() public {
@@ -683,11 +692,11 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
 
         vm.expectRevert(InvalidCheckpointEpoch.selector);
         vm.prank(validators[0]);
-        saManager.submitCheckpoint(checkpointWithIncorrectHeight, validators, signatures);
+        saCheckpointer.submitCheckpoint(checkpointWithIncorrectHeight, validators, signatures);
 
         vm.expectCall(gatewayAddress, abi.encodeCall(IGateway.commitCheckpoint, (checkpoint)), 1);
         vm.prank(validators[0]);
-        saManager.submitCheckpoint(checkpoint, validators, signatures);
+        saCheckpointer.submitCheckpoint(checkpoint, validators, signatures);
 
         require(saGetter.hasSubmittedInLastBottomUpCheckpointHeight(validators[0]), "validator rewarded");
         require(
@@ -696,7 +705,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         );
 
         vm.prank(validators[0]);
-        saManager.submitCheckpoint(checkpoint, validators, signatures);
+        saCheckpointer.submitCheckpoint(checkpoint, validators, signatures);
         require(saGetter.hasSubmittedInLastBottomUpCheckpointHeight(validators[0]), "validator rewarded");
         require(
             saGetter.lastBottomUpCheckpointHeight() == saGetter.bottomUpCheckPeriod(),
@@ -766,7 +775,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
 
         vm.expectCall(gatewayAddress, abi.encodeCall(IGateway.commitCheckpoint, (checkpoint)), 1);
         vm.prank(validators[0]);
-        saManager.submitCheckpoint(checkpoint, validators, signatures);
+        saCheckpointer.submitCheckpoint(checkpoint, validators, signatures);
 
         require(saGetter.hasSubmittedInLastBottomUpCheckpointHeight(validators[0]), "validator rewarded");
         require(
@@ -809,7 +818,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
         }
 
         vm.prank(validators[0]);
-        saManager.submitCheckpoint(checkpoint, validators, signatures);
+        saCheckpointer.submitCheckpoint(checkpoint, validators, signatures);
 
         require(saGetter.getRelayerReward(validators[1]) == 0, "unexpected reward");
         require(saGetter.getRelayerReward(validators[2]) == 0, "unexpected reward");
@@ -821,7 +830,7 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
             // disable the claim of rewards if the fee is zero
             if (DEFAULT_CROSS_MSG_FEE != 0) {
                 vm.startPrank(validators[0]);
-                saManager.claimRewardForRelayer();
+                saRewarder.claimRewardForRelayer();
                 uint256 b2 = validators[0].balance;
                 require(b2 - b1 == validator0Reward, "reward received");
             }
@@ -885,23 +894,23 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
 
         vm.expectRevert(InvalidBatchEpoch.selector);
         vm.prank(validators[0]);
-        saManager.submitBottomUpMsgBatch(batchIncorrectHeight, validators, signatures);
+        saCheckpointer.submitBottomUpMsgBatch(batchIncorrectHeight, validators, signatures);
 
         vm.prank(validators[0]);
         batchIncorrectHeight.msgs = new CrossMsg[](0);
         batchIncorrectHeight.blockHeight = saGetter.bottomUpMsgBatchPeriod();
         vm.expectRevert(BatchWithNoMessages.selector);
-        saManager.submitBottomUpMsgBatch(batchIncorrectHeight, validators, signatures);
+        saCheckpointer.submitBottomUpMsgBatch(batchIncorrectHeight, validators, signatures);
 
         vm.expectCall(gatewayAddress, abi.encodeCall(IGateway.execBottomUpMsgBatch, (batch)), 1);
         vm.prank(validators[0]);
-        saManager.submitBottomUpMsgBatch(batch, validators, signatures);
+        saCheckpointer.submitBottomUpMsgBatch(batch, validators, signatures);
 
         require(saGetter.hasSubmittedInLastBottomUpMsgBatchHeight(validators[0]), "validator rewarded");
         require(saGetter.lastBottomUpMsgBatchHeight() == saGetter.bottomUpMsgBatchPeriod(), " batch height correct");
 
         vm.prank(validators[1]);
-        saManager.submitBottomUpMsgBatch(batch, validators, signatures);
+        saCheckpointer.submitBottomUpMsgBatch(batch, validators, signatures);
         require(saGetter.hasSubmittedInLastBottomUpMsgBatchHeight(validators[0]), "validator rewarded");
         require(saGetter.lastBottomUpMsgBatchHeight() == saGetter.bottomUpMsgBatchPeriod(), " batch height correct");
     }
@@ -1531,15 +1540,15 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
     }
 
     function testSubnetActorDiamond_Pausable_SetPaused() public {
-        saManager.pause();
-        require(saManager.paused());
+        saPauser.pause();
+        require(saPauser.paused());
 
-        saManager.unpause();
-        require(!saManager.paused());
+        saPauser.unpause();
+        require(!saPauser.paused());
     }
 
     function testSubnetActorDiamond_Pausable_EnforcedPause() public {
-        saManager.pause();
+        saPauser.pause();
         uint256 n = 1;
         (address[] memory validators, , bytes[] memory publicKeys) = TestUtils.newValidators(n);
 
@@ -1552,18 +1561,18 @@ contract SubnetActorDiamondTest is Test, IntegrationTestBase {
     function testSubnetActorDiamond_Pausable_NotOwner() public {
         vm.startPrank(address(1));
         vm.expectRevert(LibDiamond.NotOwner.selector);
-        saManager.pause();
+        saPauser.pause();
     }
 
     function testSubnetActorDiamond_Pausable_CannotPauseAgain() public {
-        saManager.pause();
+        saPauser.pause();
 
         vm.expectRevert(Pausable.EnforcedPause.selector);
-        saManager.pause();
+        saPauser.pause();
     }
 
     function testSubnetActorDiamond_Pausable_CannotUnpauseAgain() public {
         vm.expectRevert(Pausable.ExpectedPause.selector);
-        saManager.unpause();
+        saPauser.unpause();
     }
 }
